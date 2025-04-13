@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Rosegarden
+Exec=rosegarden
+Icon=rosegarden
+Type=Application
+Categories=Utility;
+Terminal=false

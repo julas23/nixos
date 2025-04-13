@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=LibreOffice Writer
+Exec=libreoffice --writer
+Icon=libreoffice_writer
+Type=Application
+Categories=Utility;
+Terminal=false

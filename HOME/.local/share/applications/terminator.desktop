@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Terminator
+Exec=terminator
+Icon=terminator
+Type=Application
+Categories=Utility;
+Terminal=false

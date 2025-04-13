@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Simple Scan
+Exec=simple-scan
+Icon=simple_scan
+Type=Application
+Categories=Utility;
+Terminal=false

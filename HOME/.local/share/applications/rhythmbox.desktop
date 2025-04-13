@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Rhythmbox
+Exec=rhythmbox
+Icon=rhythmbox
+Type=Application
+Categories=Utility;
+Terminal=false

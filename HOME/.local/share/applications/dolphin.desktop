@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Dolphin
+Exec=dolphin
+Icon=dolphin
+Type=Application
+Categories=Utility;
+Terminal=false

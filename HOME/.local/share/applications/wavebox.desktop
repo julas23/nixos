@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Wavebox
+Exec=wavebox
+Icon=wavebox
+Type=Application
+Categories=Utility;
+Terminal=false

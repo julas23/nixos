@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Thunar
+Exec=thunar
+Icon=thunar
+Type=Application
+Categories=Utility;
+Terminal=false

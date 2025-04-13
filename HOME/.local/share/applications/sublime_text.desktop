@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Sublime Text
+Exec=sublime_text
+Icon=sublime_text
+Type=Application
+Categories=Utility;
+Terminal=false
