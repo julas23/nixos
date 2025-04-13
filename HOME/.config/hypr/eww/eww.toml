@@ -1,0 +1,4 @@
+[vars]
+
+[script-vars]
+get-icon-path = "bash ~/.config/eww/scripts/get-icon-path.sh"

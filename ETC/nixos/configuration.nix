@@ -90,11 +90,14 @@
     font-awesome
     material-design-icons
     (nerdfonts.override { fonts = [ "FiraCode" "JetBrainsMono" ]; })
+    papirus-icon-theme
+    gnome.adwaita-icon-theme
   ];
 
   environment.variables = {
     XCURSOR_THEME = "Bibata-Modern-Classic";
     XCURSOR_SIZE = "24";
+    HYPRLAND_WORKAREA_OFFSET = "0,40,0,0";
   };
 
   environment.systemPackages = with pkgs; [
@@ -124,7 +127,7 @@
     eza conky cava btop bibata-cursors
 
     # Hyprland stuff
-    polkit_gnome hyprpaper waybar networkmanagerapplet tofi
+    polkit_gnome hyprpaper networkmanagerapplet eww
 
     # Scanner Brother (brscan5)
     brscan5
