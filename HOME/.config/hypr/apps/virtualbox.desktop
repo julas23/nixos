@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=VirtualBox
+Exec=virtualbox
+Icon=./virtualbox.png
+Type=Application
+Categories=Utility;
+Terminal=false

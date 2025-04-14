@@ -1,9 +1,9 @@
-#!/run/current-system/sw/bin/bash
+#!/bin/bash
 
-echo "🔍 Verificando arquivos .desktop em ~/.local/share/applications/"
+echo "🔍 Verificando arquivos .desktop"
 echo
 
-for file in ~/.local/share/applications/*.desktop; do
+for file in ~/Git/nixos/HOME/.local/share/applications/*.desktop; do
     app_name=$(basename "$file")
     icon_name=$(grep -m1 '^Icon=' "$file" | cut -d'=' -f2)
 

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=VS Code
+Exec=code-oss
+Icon=./code.png
+Type=Application
+Categories=Utility;
+Terminal=false

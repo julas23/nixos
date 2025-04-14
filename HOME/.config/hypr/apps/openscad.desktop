@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=OpenSCAD
+Exec=openscad
+Icon=./openscad.png
+Type=Application
+Categories=Utility;
+Terminal=false

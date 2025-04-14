@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Draw.io
+Exec=drawio
+Icon=./draw.io.png
+Type=Application
+Categories=Utility;
+Terminal=false

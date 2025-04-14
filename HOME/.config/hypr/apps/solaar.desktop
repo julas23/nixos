@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Solaar
+Exec=solaar
+Icon=./solaar.png
+Type=Application
+Categories=Utility;
+Terminal=false

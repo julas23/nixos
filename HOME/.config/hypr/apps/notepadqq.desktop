@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Notepadqq
+Exec=notepadqq
+Icon=./notepadqq.png
+Type=Application
+Categories=Utility;
+Terminal=false

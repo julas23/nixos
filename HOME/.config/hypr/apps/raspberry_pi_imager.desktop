@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Raspberry Pi Imager
+Exec=rpi-imager
+Icon=./raspberry_pi_imager.png
+Type=Application
+Categories=Utility;
+Terminal=false

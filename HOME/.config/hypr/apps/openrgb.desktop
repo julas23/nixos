@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=OpenRGB
+Exec=openrgb
+Icon=./openrgb.png
+Type=Application
+Categories=Utility;
+Terminal=false

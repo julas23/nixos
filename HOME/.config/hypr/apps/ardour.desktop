@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Ardour
+Exec=ardour
+Icon=./ardour.png
+Type=Application
+Categories=Utility;
+Terminal=false

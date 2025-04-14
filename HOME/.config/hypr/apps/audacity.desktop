@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Audacity
+Exec=audacity
+Icon=./audacity.png
+Type=Application
+Categories=Utility;
+Terminal=false
