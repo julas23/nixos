@@ -33,7 +33,7 @@
     isNormalUser = true;
     group = "juliano";
     extraGroups = [ "wheel" "networkmanager" "video" "input" "plugdev" ];
-    initialPassword = "jas2305X";
+    initialPassword = "P@$$w0rd";
   };
   users.groups.juliano = {};
 
