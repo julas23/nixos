@@ -1,73 +1,67 @@
 { config, pkgs, ... }:
 
 {
+  imports = [ ./hardware-configuration.nix ];
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.permittedInsecurePackages = [ "openssl-1.1.1w" ];
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
-  # Boot UEFI
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.initrd.kernelModules = [ "amdgpu" ];
+  boot.kernelPackages = pkgs.linuxPackages_6_6;
 
-  #Files systems
-  fileSystems."/" = {
-  device = "/dev/disk/by-uuid/4eae3a7a-0da0-4a69-99f9-4b3a3649a4d9";
-  fsType = "ext4";
-  };
-
-  fileSystems."/home" = {
-    device = "/dev/disk/by-uuid/1def3eef-6f07-4e4d-9c47-bd587a6a24bc";
-    fsType = "ext4";
-  };
-
-  fileSystems."/boot" = {
-    device = "/dev/disk/by-uuid/CD4D-9FB5";
-    fsType = "vfat";
-  };
-
-  # Recursos modernos do Nix
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
-
-  # Usuário Juliano
-  users.users.juliano = {
-    isNormalUser = true;
-    group = "juliano";
-    extraGroups = [ "wheel" "networkmanager" "video" "input" "plugdev" ];
-    initialPassword = "P@$$w0rd";
-  };
-  users.groups.juliano = {};
-
-  # Interface gráfica
-  programs.hyprland.enable = true;
-
-  # Driver GPU
-  #services.xserver.videoDrivers = [ "nvidia" ];
-  services.xserver.videoDrivers = [ "amdgpu" ];
-  hardware.graphics.enable = true;
-  hardware.graphics.enable32Bit = true;
-  hardware.enableRedistributableFirmware = true;
-  hardware.enableAllFirmware = true;
-  hardware.firmware = with pkgs; [ linux-firmware ];
-
-  # Rede e som
+  networking.hostName = "hp";
   networking.networkmanager.enable = true;
   networking.nameservers = [ "1.1.1.1" "8.8.8.8"];
   networking.search = [ "home.local" ];
 
-  services.pipewire.enable = true;
-  services.pipewire.audio.enable = true;
-  services.pipewire.pulse.enable = true;
-  services.pipewire.alsa.enable = true;
-  services.pipewire.jack.enable = true;
-
-  # Serviços adicionais
-  services.xserver ={
-    enable = true;
-    layout = "us";
-    xkbVariant = "intl";
-    libinput.enable = true;
+  fileSystems."/mnt/nfs" = {
+    device = "192.168.0.3:/mnt/dt";
+    fsType = "nfs";
+    options = [ "defaults" "noatime" "nolock" "_netdev" ];
+    neededForBoot = false;
   };
-  services.xserver.displayManager.sddm = {
+
+  time.timeZone = "Europe/Lisbon";
+
+  i18n.defaultLocale = "en_US.UTF-8";
+  i18n.extraLocaleSettings = {
+    LC_ADDRESS = "pt_PT.UTF-8";
+    LC_IDENTIFICATION = "pt_PT.UTF-8";
+    LC_MEASUREMENT = "pt_PT.UTF-8";
+    LC_MONETARY = "pt_PT.UTF-8";
+    LC_NAME = "pt_PT.UTF-8";
+    LC_NUMERIC = "pt_PT.UTF-8";
+    LC_PAPER = "pt_PT.UTF-8";
+    LC_TELEPHONE = "pt_PT.UTF-8";
+    LC_TIME = "pt_PT.UTF-8";
+  };
+
+  hardware.enableAllFirmware = true;
+  hardware.pulseaudio.enable = false;
+  hardware.graphics.enable = true;
+  hardware.graphics.enable32Bit = true;
+  hardware.enableRedistributableFirmware = true;
+  #hardware.enableAllFirmware = true;
+  hardware.firmware = with pkgs; [ linux-firmware ];
+
+  programs.firefox.enable = true;
+  programs.hyprland.enable = true;
+  security.rtkit.enable = true;
+  services.xserver.videoDrivers = [ "amdgpu" ];
+  services.printing.enable = true;
+  services.openssh.enable = true;
+  services.xserver.desktopManager.plasma5.enable = false;
+  services.fstrim.enable = true;
+  services.cron.enable = true;
+  services.journald.extraConfig = '' Storage=persistent '';
+  services.gvfs.enable = true;
+  services.udisks2.enable = true;
+  services.xserver.enable = true;
+  #services.xserver.displayManager.gdm.enable = true;
+  #services.xserver.desktopManager.gnome.enable = true;
+  services.displayManager.sddm = {
     enable = true;
     wayland.enable = true;
     settings = {
@@ -75,72 +69,85 @@
       Users.MaximumUid = 369;
     };
   };
-  services.xserver.desktopManager.plasma5.enable = false;
-  services.fstrim.enable = true;
-  services.cron.enable = true;
-  services.openssh.enable = true;
-  services.journald.extraConfig = '' Storage=persistent '';
-  services.gvfs.enable = true;
-  services.udisks2.enable = true;
+  services.xserver.xkb = {
+    layout = "us";
+    variant = "alt-intl";
+  };
+  console.keyMap = "us";
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
 
-
-  # Pacotes do sistema
+  users.users.juliano = {
+    isSystemUser = true;
+    uid = 369;
+    group = "juliano";
+    extraGroups = [ "networkmanager" "wheel" "users" "video" "input" "plugdev" ];
+    home = "/home/juliano";
+    homeMode = "755";
+    useDefaultShell = true;
+    initialPassword = "jas2305X";
+    description = "Juliano Alves dos Santos";
+  };
+  users.groups.juliano = {
+    gid = 369;
+  };
 
   fonts.packages = with pkgs; [
     font-awesome
     material-design-icons
     (nerdfonts.override { fonts = [ "FiraCode" "JetBrainsMono" ]; })
     papirus-icon-theme
-    gnome.adwaita-icon-theme
+    pkgs.adwaita-icon-theme
   ];
-
-  environment.variables = {
-    XCURSOR_THEME = "Bibata-Modern-Classic";
-    XCURSOR_SIZE = "24";
-    HYPRLAND_WORKAREA_OFFSET = "0,40,0,0";
-  };
 
   environment.systemPackages = with pkgs; [
+    #internet
+    chromium transmission_4-qt brave
 
-    # Ferramentas e utilitários
-    kmscube libdrm wayland sddm mlocate notepadqq p7zip mc curl
-    remmina arandr alacritty kitty
-    dmidecode lshw neofetch lm_sensors feh fish zsh
-    tmux wget ansible lsof nfs-utils
-    lsyncd virtualbox transmission_4-qt
-    rpi-imager terminator termite komorebi mesa
+    #development
+    dbeaver-bin vscode lens
 
-    # Multimídia / Produtividade
-    ardour audacity blender hydrogen gwenview
-    obs-studio rhythmbox rosegarden musescore vlc
+    #office
+    bitwarden sublime4 libreoffice
 
-    # Desenvolvimento / Navegador
-    brave vscode sublime4 chromium
-    lens wavebox drawio libreoffice
+    #design
+    simple-scan brscan5 blender cheese drawio feh freecad gimp gwenview inkscape openscad sweethome3d.application pkgs.gnome-screenshot
 
-    # Acessórios e drivers
-    openscad gimp inkscape sweethome3d.application cheese simple-scan gnome.gnome-screenshot
-    openrgb polychromatic solaar
-    bitwarden gnome.gnome-calculator appimage-run
+    #multimidia
+    mpv mpvpaper ardour audacity hydrogen muse musescore rhythmbox rosegarden obs-studio vlc
 
-    # CLI estética e monitoramento
-    eza conky cava btop bibata-cursors
+    #system
+    cups gutenprint ghostscript cups-filters foomatic-db foomatic-db-engine
+    alsa-firmware alsa-utils arandr networkmanagerapplet
+    cronie htop inxi exo eza font-manager freerdp git glxinfo lsof mc micro hyprpaper
+    dmidecode lshw neofetch lm_sensors
 
-    # Hyprland stuff
-    polkit_gnome hyprpaper networkmanagerapplet eww
+    #tools
+    alacritty foot ansible kitty tmux termite zsh fish
+    btop popsicle blueman dolphin nano nettools nfs-utils mlocate p7zip curl 
+    rpi-imager rdesktop remmina system-config-printer unrar unzip virtualbox
+    pkgs.gnome-calculator noto-fonts wget xdg-utils wl-clipboard clipman xdg-desktop-portal-hyprland
 
-    # Scanner Brother (brscan5)
-    brscan5
+    #opcional
+    #simplenote
+    #lsyncd
+    #polychromatic
+    eww
+    waybar
+    wofi
+    #cava
+    #conky
+    #openrgb
+    solaar
 
-    # Banco de dados e ferramentas
-    dbeaver-bin lens
-
-    # Utilitários
-    nvme-cli dolphin xfce.thunar mate.caja
-
-    #PENDING PACKAGES
-    # torbrowser
+    #pending
+    # wavebox
+    # amd-ucode base base-devel torbrowser xrandr bpytop vulkan-radeon vulkan-tools lib32-glibc lib32-gcc-libs python python-pip
+    # ttf-nerd-fonts-symbols ttf-nerd-fonts-symbols-mono ttf-jetbrains-mono-nerd ttf-meslo-nerd ttf-firacode-nerd
   ];
-
   system.stateVersion = "24.11";
 }
