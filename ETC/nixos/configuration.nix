@@ -89,7 +89,7 @@
     home = "/home/juliano";
     homeMode = "755";
     useDefaultShell = true;
-    initialPassword = "jas2305X";
+    initialPassword = "P4$$W0rd";
     description = "Juliano Alves dos Santos";
   };
   users.groups.juliano = {
