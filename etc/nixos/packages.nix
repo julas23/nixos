@@ -24,7 +24,7 @@ pkgs: with pkgs; [
   dmidecode lshw neofetch lm_sensors
 
 #### tools
-  alacritty foot ansible kitty tmux termite zsh fish
+  alacritty foot ansible kitty tmux termite zsh fish wlogout swaybg
   btop popsicle blueman dolphin nano nettools nfs-utils mlocate p7zip curl 
   rpi-imager rdesktop remmina system-config-printer unrar unzip virtualbox
   pkgs.gnome-calculator noto-fonts wget xdg-utils wl-clipboard clipman xdg-desktop-portal-hyprland
