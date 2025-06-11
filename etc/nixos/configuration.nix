@@ -2,7 +2,7 @@
 
 let
   PackageList = import ./packages.nix pkgs;
-  gpuVendor = "amdgpu";
+  gpuVendor = "nvidia";
   gpuModule = import ./${gpuVendor}.nix;
 in
 {
@@ -15,7 +15,7 @@ in
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelPackages = pkgs.linuxPackages_6_12;
 
-  networking.hostName = "hp";
+  networking.hostName = "ryzen";
   networking.networkmanager.enable = true;
   networking.nameservers = [ "1.1.1.1" "8.8.8.8"];
   networking.search = [ "home.local" ];
@@ -43,15 +43,21 @@ in
   };
 
   hardware.enableAllFirmware = true;
-  hardware.pulseaudio.enable = false;
   hardware.graphics.enable = true;
   hardware.graphics.enable32Bit = true;
   hardware.enableRedistributableFirmware = true;
   hardware.firmware = with pkgs; [ linux-firmware ];
 
+  hardware.sane = {
+    enable = true;
+    #extraDrivers = [ pkgs.brscan5 ];
+  };
+
   programs.firefox.enable = true;
   programs.hyprland.enable = true;
   security.rtkit.enable = true;
+
+  services.pulseaudio.enable = false;
   services.printing.enable = true;
   services.openssh.enable = true;
   services.xserver.desktopManager.plasma5.enable = false;
@@ -63,6 +69,25 @@ in
   services.xserver.enable = true;
   #services.xserver.displayManager.gdm.enable = true;
   #services.xserver.desktopManager.gnome.enable = true;
+
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+    openFirewall = true;
+    publish = {
+      enable = true;
+      userServices = true;
+    };
+  };
+
+  services.printing.drivers = with pkgs; [
+    brlaser
+    brgenml1lpr			# Driver LPR genérico da Brother
+    brgenml1cupswrapper 	# Wrapper CUPS genérico da Brother
+    #mfcl3740cdwlpr		# Tente este se os genéricos não funcionarem (mas pode não existir um pacote exato para o seu modelo)
+    #mfcl3740cdwcupswrapper	# O mesmo aqui
+  ];
+
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true;
@@ -87,7 +112,7 @@ in
     isSystemUser = true;
     uid = 369;
     group = "juliano";
-    extraGroups = [ "networkmanager" "wheel" "users" "video" "input" "plugdev" ];
+    extraGroups = [ "networkmanager" "wheel" "users" "video" "input" "plugdev" "lp" ];
     home = "/home/juliano";
     homeMode = "755";
     useDefaultShell = true;
@@ -101,7 +126,7 @@ in
   fonts.packages = with pkgs; [
     font-awesome
     material-design-icons
-    (nerdfonts.override { fonts = [ "FiraCode" "JetBrainsMono" ]; })
+    #(nerdfonts.override { fonts = [ "FiraCode" "JetBrainsMono" ]; })
     papirus-icon-theme
     pkgs.adwaita-icon-theme
   ];
