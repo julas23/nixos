@@ -13,6 +13,7 @@ in
 
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  boot.kernelModules = [ "hid-corsair-void" ];
   boot.kernelPackages = pkgs.linuxPackages_6_12;
 
   networking.hostName = "ryzen";
@@ -47,28 +48,20 @@ in
   hardware.graphics.enable32Bit = true;
   hardware.enableRedistributableFirmware = true;
   hardware.firmware = with pkgs; [ linux-firmware ];
+  hardware.openrazer.enable = true;
 
   hardware.sane = {
     enable = true;
-    #extraDrivers = [ pkgs.brscan5 ];
+    brscan5 = {
+      enable = true;
+    };
   };
 
-  programs.firefox.enable = true;
-  programs.hyprland.enable = true;
-  security.rtkit.enable = true;
-
-  services.pulseaudio.enable = false;
-  services.printing.enable = true;
-  services.openssh.enable = true;
-  services.xserver.desktopManager.plasma5.enable = false;
-  services.fstrim.enable = true;
-  services.cron.enable = true;
-  services.journald.extraConfig = '' Storage=persistent '';
-  services.gvfs.enable = true;
-  services.udisks2.enable = true;
-  services.xserver.enable = true;
-  #services.xserver.displayManager.gdm.enable = true;
-  #services.xserver.desktopManager.gnome.enable = true;
+  services.printing.drivers = with pkgs; [
+    brlaser
+    mfcl3770cdwlpr
+    mfcl3770cdwcupswrapper
+  ];
 
   services.avahi = {
     enable = true;
@@ -80,27 +73,41 @@ in
     };
   };
 
-  services.printing.drivers = with pkgs; [
-    brlaser
-    brgenml1lpr			# Driver LPR genérico da Brother
-    brgenml1cupswrapper 	# Wrapper CUPS genérico da Brother
-    #mfcl3740cdwlpr		# Tente este se os genéricos não funcionarem (mas pode não existir um pacote exato para o seu modelo)
-    #mfcl3740cdwcupswrapper	# O mesmo aqui
-  ];
+  programs.firefox.enable = true;
+  programs.hyprland.enable = true;
+  security.rtkit.enable = true;
 
-  services.displayManager.sddm = {
-    enable = true;
-    wayland.enable = true;
-    settings = {
-      Users.MinimumUid = 369;
-      Users.MaximumUid = 369;
+  services.pulseaudio.enable = false;
+  services.printing.enable = true;
+  services.openssh.enable = true;
+  services.fstrim.enable = true;
+  services.cron.enable = true;
+  services.gvfs.enable = true;
+  services.udisks2.enable = true;
+  services.journald.extraConfig = '' Storage=persistent '';
+  services.xserver.desktopManager.plasma5.enable = false;
+
+
+  services.xserver.xkb = {
+      layout = "us";
+      variant = "alt-intl";
+    };
+
+  services.displayManager = {
+    sddm ={
+      enable = true;
+      wayland.enable = true;
+      settings = {
+        Users.MinimumUid = 369;
+        Users.MaximumUid = 369;
+        XDisplay = {
+          DisplayCommand = "/etc/nixos/Xsetup";
+        };
+      };
     };
   };
-  services.xserver.xkb = {
-    layout = "us";
-    variant = "alt-intl";
-  };
   console.keyMap = "us";
+
   services.pipewire = {
     enable = true;
     alsa.enable = true;
@@ -112,13 +119,14 @@ in
     isSystemUser = true;
     uid = 369;
     group = "juliano";
-    extraGroups = [ "networkmanager" "wheel" "users" "video" "input" "plugdev" "lp" ];
+    extraGroups = [ "networkmanager" "wheel" "users" "video" "input" "plugdev" "lp" "scanner" "openrazer" ];
     home = "/home/juliano";
     homeMode = "755";
     useDefaultShell = true;
     initialPassword = "jas2305X";
     description = "Juliano Alves dos Santos";
   };
+  security.sudo.wheelNeedsPassword = false;
   users.groups.juliano = {
     gid = 369;
   };

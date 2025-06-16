@@ -1,0 +1,5 @@
+#!/bin/sh
+xrandr \
+--output DP-4 --primary --mode 7680x2160 --rate 120 --pos 2160x0 --rotate normal \
+--output DP-2 --mode 3840x2160 --rate 60 --pos 0x-1640 --rotate left \
+--output HDMI-A-1 --mode 3840x2160 --rate 60 --pos 9840x-1640 --rotate left

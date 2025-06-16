@@ -11,22 +11,24 @@ pkgs: with pkgs; [
   bitwarden sublime4 libreoffice xed
 
 #### design
-  simple-scan brscan5 blender cheese drawio feh freecad gimp kdePackages.gwenview inkscape openscad sweethome3d.application pkgs.gnome-screenshot
+  brscan5 simple-scan blender cheese drawio feh freecad gimp kdePackages.gwenview inkscape openscad sweethome3d.application pkgs.gnome-screenshot
 
 #### multimidia
   mpv mpvpaper ardour audacity hydrogen muse musescore rhythmbox rosegarden obs-studio vlc
 
+#### Já parte do pacote CUPS
+#  cups gutenprint ghostscript cups-filters foomatic-db foomatic-db-engine
+
 #### system
-  cups gutenprint ghostscript cups-filters foomatic-db foomatic-db-engine
-  alsa-firmware alsa-utils arandr networkmanagerapplet dpkg
+  alsa-firmware alsa-utils arandr networkmanagerapplet
   cronie htop inxi exo eza font-manager freerdp git glxinfo lsof mc micro hyprpaper
   eww waybar wofi wl-clipboard cliphist pstree pavucontrol
   dmidecode lshw neofetch lm_sensors
 
 #### tools
-  alacritty foot ansible kitty tmux termite zsh fish wlogout swaybg kdePackages.okular
-  btop popsicle blueman kdePackages.dolphin nano nettools nfs-utils mlocate p7zip curl 
-  rpi-imager rdesktop remmina system-config-printer unrar unzip virtualbox numlockx
+  alacritty foot ansible kitty tmux termite zsh fish wlogout swaybg kdePackages.okular grimblast
+  btop popsicle blueman kdePackages.dolphin nano nettools nfs-utils mlocate p7zip curl nvme-cli usbutils
+  rpi-imager rdesktop remmina system-config-printer unrar unzip virtualbox numlockx file dnsutils whois
   pkgs.gnome-calculator noto-fonts wget wl-clipboard clipman xdg-utils xdg-desktop-portal xdg-desktop-portal-hyprland
 
 #### opcional
@@ -35,7 +37,7 @@ pkgs: with pkgs; [
   cava
   conky
   openrgb
-  solaar
+  #solaar
 
 #### pending
   wavebox
