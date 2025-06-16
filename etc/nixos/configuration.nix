@@ -11,9 +11,13 @@ in
   nixpkgs.config.permittedInsecurePackages = [ "openssl-1.1.1w" ];
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
+
+
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelModules = [ "hid-corsair-void" ];
+  #boot.kernelModules = [ "hid-corsair-void" "rtl8821ce" ];
+  #boot.extraModulePackages = [ config.boot.kernelPackages.rtl8821ce ];
   boot.kernelPackages = pkgs.linuxPackages_6_12;
 
   networking.hostName = "ryzen";
