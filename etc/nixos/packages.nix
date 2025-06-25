@@ -19,6 +19,9 @@ pkgs: with pkgs; [
 #### Já parte do pacote CUPS
 #  cups gutenprint ghostscript cups-filters foomatic-db foomatic-db-engine
 
+#### GNOME
+   gnome-tweaks gnome-console nautilus
+
 #### system
   alsa-firmware alsa-utils arandr networkmanagerapplet
   cronie htop inxi exo eza font-manager freerdp git glxinfo lsof mc micro hyprpaper
@@ -33,11 +36,14 @@ pkgs: with pkgs; [
 
 #### opcional
   lsyncd
-  polychromatic
   cava
   conky
   openrgb
+  steam
   #solaar
+
+#### fonts
+  #(nerdfonts.override { fonts = [ "FiraCode" "JetBrainsMono" ]; })
 
 #### pending
   wavebox

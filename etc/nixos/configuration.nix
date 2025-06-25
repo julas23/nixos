@@ -1,27 +1,32 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   PackageList = import ./packages.nix pkgs;
-  gpuVendor = "nvidia";
-  gpuModule = import ./${gpuVendor}.nix;
+  InsTarget = "ryzen";
+  TargetModule = import ./${InsTarget}.nix;
+  options.steam.enable = lib.mkEnableOption "Enable Steam";
 in
 {
-  imports = [ ./hardware-configuration.nix gpuModule ];
+#  config = lib.mkIf(config.steam.enable) {
+#    programs.steam.enable = true;
+#    hardware.steam-hardware.enable = true;
+#    programs.gamemode.enable = true;
+#    environment.systemPackages = with pkgs; [ minion ];
+#  };
+
+  imports = [ ./hardware-configuration.nix TargetModule ];
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.permittedInsecurePackages = [ "openssl-1.1.1w" ];
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
-
-
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelModules = [ "hid-corsair-void" ];
-  #boot.kernelModules = [ "hid-corsair-void" "rtl8821ce" ];
-  #boot.extraModulePackages = [ config.boot.kernelPackages.rtl8821ce ];
   boot.kernelPackages = pkgs.linuxPackages_6_12;
 
   networking.hostName = "ryzen";
   networking.networkmanager.enable = true;
+  networking.networkmanager.wifi.powersave = false;
   networking.nameservers = [ "1.1.1.1" "8.8.8.8"];
   networking.search = [ "home.local" ];
 
@@ -52,7 +57,6 @@ in
   hardware.graphics.enable32Bit = true;
   hardware.enableRedistributableFirmware = true;
   hardware.firmware = with pkgs; [ linux-firmware ];
-  hardware.openrazer.enable = true;
 
   hardware.sane = {
     enable = true;
@@ -78,9 +82,9 @@ in
   };
 
   programs.firefox.enable = true;
-  programs.hyprland.enable = true;
   security.rtkit.enable = true;
-
+  services.xserver.libinput.enable = true;
+  services.xserver.desktopManager.gnome.enable = true;
   services.pulseaudio.enable = false;
   services.printing.enable = true;
   services.openssh.enable = true;
@@ -96,20 +100,6 @@ in
       layout = "us";
       variant = "alt-intl";
     };
-
-  services.displayManager = {
-    sddm ={
-      enable = true;
-      wayland.enable = true;
-      settings = {
-        Users.MinimumUid = 369;
-        Users.MaximumUid = 369;
-        XDisplay = {
-          DisplayCommand = "/etc/nixos/Xsetup";
-        };
-      };
-    };
-  };
   console.keyMap = "us";
 
   services.pipewire = {
@@ -138,7 +128,6 @@ in
   fonts.packages = with pkgs; [
     font-awesome
     material-design-icons
-    #(nerdfonts.override { fonts = [ "FiraCode" "JetBrainsMono" ]; })
     papirus-icon-theme
     pkgs.adwaita-icon-theme
   ];
