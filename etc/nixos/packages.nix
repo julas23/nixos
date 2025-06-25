@@ -20,7 +20,10 @@ pkgs: with pkgs; [
 #  cups gutenprint ghostscript cups-filters foomatic-db foomatic-db-engine
 
 #### GNOME
-   gnome-tweaks gnome-console nautilus
+   gnome-tweaks gnome-console nautilus desktop-file-utils
+
+#### THEMES
+   papirus-icon-theme tela-icon-theme arc-theme arc-icon-theme dracula-icon-theme kdePackages.breeze-icons kdePackages.oxygen-icons mint-l-icons windows10-icons material-design-icons pkgs.adwaita-icon-theme
 
 #### system
   alsa-firmware alsa-utils arandr networkmanagerapplet
@@ -29,7 +32,7 @@ pkgs: with pkgs; [
   dmidecode lshw neofetch lm_sensors
 
 #### tools
-  alacritty foot ansible kitty tmux termite zsh fish wlogout swaybg kdePackages.okular grimblast
+  wavebox alacritty foot ansible kitty tmux termite zsh fish wlogout swaybg kdePackages.okular grimblast
   btop popsicle blueman kdePackages.dolphin nano nettools nfs-utils mlocate p7zip curl nvme-cli usbutils
   rpi-imager rdesktop remmina system-config-printer unrar unzip virtualbox numlockx file dnsutils whois
   pkgs.gnome-calculator noto-fonts wget wl-clipboard clipman xdg-utils xdg-desktop-portal xdg-desktop-portal-hyprland
@@ -42,11 +45,7 @@ pkgs: with pkgs; [
   steam
   #solaar
 
-#### fonts
-  #(nerdfonts.override { fonts = [ "FiraCode" "JetBrainsMono" ]; })
-
 #### pending
-  wavebox
   #simplenote
   #amd-ucode
   vulkan-loader

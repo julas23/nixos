@@ -2,8 +2,7 @@
 
   boot.initrd.kernelModules = [ "amdgpu" ];
   programs.hyprland.enable = true;
-
-  networking.hostName = "hp";
+  networking.hostName = "think";
 
   services.xserver.videoDrivers = [ "amdgpu" ];
   services.displayManager = {

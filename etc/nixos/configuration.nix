@@ -2,18 +2,11 @@
 
 let
   PackageList = import ./packages.nix pkgs;
-  InsTarget = "ryzen";
+  InsTarget = "--";
   TargetModule = import ./${InsTarget}.nix;
   options.steam.enable = lib.mkEnableOption "Enable Steam";
 in
 {
-#  config = lib.mkIf(config.steam.enable) {
-#    programs.steam.enable = true;
-#    hardware.steam-hardware.enable = true;
-#    programs.gamemode.enable = true;
-#    environment.systemPackages = with pkgs; [ minion ];
-#  };
-
   imports = [ ./hardware-configuration.nix TargetModule ];
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.permittedInsecurePackages = [ "openssl-1.1.1w" ];
@@ -24,7 +17,6 @@ in
   boot.kernelModules = [ "hid-corsair-void" ];
   boot.kernelPackages = pkgs.linuxPackages_6_12;
 
-  networking.hostName = "ryzen";
   networking.networkmanager.enable = true;
   networking.networkmanager.wifi.powersave = false;
   networking.nameservers = [ "1.1.1.1" "8.8.8.8"];
@@ -33,7 +25,7 @@ in
   fileSystems."/mnt/nfs" = {
     device = "192.168.0.3:/mnt/dt";
     fsType = "nfs";
-    options = [ "defaults" "noatime" "nolock" "_netdev" ];
+    options = [ "noatime" "nolock" "_netdev" "nofail" ];
     neededForBoot = false;
   };
 
@@ -81,9 +73,8 @@ in
     };
   };
 
-  programs.firefox.enable = true;
   security.rtkit.enable = true;
-  services.xserver.libinput.enable = true;
+  services.libinput.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
   services.pulseaudio.enable = false;
   services.printing.enable = true;
@@ -94,7 +85,6 @@ in
   services.udisks2.enable = true;
   services.journald.extraConfig = '' Storage=persistent '';
   services.xserver.desktopManager.plasma5.enable = false;
-
 
   services.xserver.xkb = {
       layout = "us";
@@ -125,11 +115,8 @@ in
     gid = 369;
   };
 
-  fonts.packages = with pkgs; [
-    font-awesome
-    material-design-icons
-    papirus-icon-theme
-    pkgs.adwaita-icon-theme
+  fonts.packages = with pkgs; [ font-awesome 
+    (nerdfonts.override { fonts = [ "FiraCode" "JetBrainsMono" ]; })
   ];
 
   environment.systemPackages = PackageList;
