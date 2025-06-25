@@ -35,7 +35,7 @@ pkgs: with pkgs; [
   wavebox alacritty foot ansible kitty tmux termite zsh fish wlogout swaybg kdePackages.okular grimblast
   btop popsicle blueman kdePackages.dolphin nano nettools nfs-utils mlocate p7zip curl nvme-cli usbutils
   rpi-imager rdesktop remmina system-config-printer unrar unzip virtualbox numlockx file dnsutils whois
-  pkgs.gnome-calculator noto-fonts wget wl-clipboard clipman xdg-utils xdg-desktop-portal xdg-desktop-portal-hyprland
+  pkgs.gnome-calculator wget wl-clipboard clipman xdg-utils xdg-desktop-portal
 
 #### opcional
   lsyncd
@@ -43,14 +43,14 @@ pkgs: with pkgs; [
   conky
   openrgb
   steam
-  #solaar
+  solaar
 
 #### pending
   #simplenote
   #amd-ucode
+  #base-devel
   vulkan-loader
   vulkan-tools
-  #base-devel
   xorg.xrandr
   python3 python3Packages.pip
 ]

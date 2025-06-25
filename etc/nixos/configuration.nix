@@ -25,7 +25,7 @@ in
   fileSystems."/mnt/nfs" = {
     device = "192.168.0.3:/mnt/dt";
     fsType = "nfs";
-    options = [ "noatime" "nolock" "_netdev" "nofail" ];
+    options = [ "noatime" "nolock" "_netdev" ];
     neededForBoot = false;
   };
 
@@ -115,9 +115,7 @@ in
     gid = 369;
   };
 
-  fonts.packages = with pkgs; [ font-awesome 
-    (nerdfonts.override { fonts = [ "FiraCode" "JetBrainsMono" ]; })
-  ];
+  fonts.packages = with pkgs; [ font-awesome noto-fonts pkgs.nerd-fonts._0xproto pkgs.nerd-fonts.droid-sans-mono fira-code-symbols jetbrains-mono ];
 
   environment.systemPackages = PackageList;
   system.stateVersion = "25.05";
