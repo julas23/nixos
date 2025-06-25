@@ -2,7 +2,7 @@
 
 let
   PackageList = import ./packages.nix pkgs;
-  InsTarget = "--";
+  InsTarget = "ryzen";
   TargetModule = import ./${InsTarget}.nix;
   options.steam.enable = lib.mkEnableOption "Enable Steam";
 in

@@ -14,6 +14,8 @@
     package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
 
+ environment.systemPackages = with pkgs; [ gnome-tweaks gnome-console nautilus desktop-file-utils xdotool wmctrl ];
+
   environment.variables = {
     WLR_NO_HARDWARE_CURSORS = "1";
     LIBVA_DRIVER_NAME = "nvidia";
