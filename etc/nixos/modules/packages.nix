@@ -23,6 +23,7 @@ pkgs: with pkgs; [
 #### system
   alsa-firmware alsa-utils arandr networkmanagerapplet cronie htop inxi exo eza font-manager freerdp git
   glxinfo lsof mc micro pstree pavucontrol dmidecode lshw neofetch lm_sensors
+  vulkan-loader vulkan-tools xorg.xrandr microcode-amd
 
 #### tools
   wavebox alacritty ansible tmux termite zsh fish wlogout swaybg kdePackages.okular grimblast btop
@@ -38,12 +39,6 @@ pkgs: with pkgs; [
   steam
   solaar
 
-#### pending
-  #simplenote
-  #amd-ucode
-  #base-devel
-  vulkan-loader
-  vulkan-tools
-  xorg.xrandr
-  python3 python3Packages.pip
+#### AI
+open-webui cudaPackages.cudatoolkit
 ]

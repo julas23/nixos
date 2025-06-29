@@ -1,13 +1,17 @@
 { config, lib, pkgs, ... }:
 
 let
-  PackageList = import ./packages.nix pkgs;
+  PackageList = import ./modules/packages.nix pkgs;
   InsTarget = "ryzen";
-  TargetModule = import ./${InsTarget}.nix;
+  TargetModule = import ./modules/${InsTarget}.nix;
   options.steam.enable = lib.mkEnableOption "Enable Steam";
 in
 {
-  imports = [ ./hardware-configuration.nix TargetModule ];
+  imports = [
+    ./hardware-configuration.nix
+    TargetModule
+  ];
+
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.permittedInsecurePackages = [ "openssl-1.1.1w" ];
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
@@ -21,6 +25,10 @@ in
   networking.networkmanager.wifi.powersave = false;
   networking.nameservers = [ "1.1.1.1" "8.8.8.8"];
   networking.search = [ "home.local" ];
+  networking.firewall = {
+    enable = true;
+    allowedTCPPorts = [ 11434  8080  22 ];
+  };
 
   fileSystems."/mnt/nfs" = {
     device = "192.168.0.3:/mnt/dt";
@@ -73,7 +81,11 @@ in
     };
   };
 
+  xdg.portal.enable = true;
+  xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+
   security.rtkit.enable = true;
+  services.flatpak.enable = true;
   services.libinput.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
   services.pulseaudio.enable = false;
@@ -85,6 +97,25 @@ in
   services.udisks2.enable = true;
   services.journald.extraConfig = '' Storage=persistent '';
   services.xserver.desktopManager.plasma5.enable = false;
+
+  services.ollama = {
+    enable = true;
+    host = "0.0.0.0";
+    port = 11434;
+  };
+
+  services.open-webui = {
+    package = pkgs.open-webui; 
+    enable = true;
+    environment = {
+      ANONYMIZED_TELEMETRY = "False";
+      DO_NOT_TRACK = "True";
+      SCARF_NO_ANALYTICS = "True";
+      OLLAMA_API_BASE_URL = "http://192.168.0.18:11434/api";
+      OLLAMA_BASE_URL = "http://192.168.0.18:11434";
+    };
+  };
+  systemd.services.open-webui.serviceConfig.ExecStart = lib.mkForce "${pkgs.open-webui}/bin/open-webui serve --host \"0.0.0.0\" --port 8080";
 
   services.xserver.xkb = {
       layout = "us";
@@ -103,7 +134,7 @@ in
     isSystemUser = true;
     uid = 369;
     group = "juliano";
-    extraGroups = [ "networkmanager" "wheel" "users" "video" "input" "plugdev" "lp" "scanner" "openrazer" ];
+    extraGroups = [ "networkmanager" "wheel" "users" "video" "input" "plugdev" "lp" "scanner" "openrazer" "mlocate" "renders" ];
     home = "/home/juliano";
     homeMode = "755";
     useDefaultShell = true;
@@ -117,6 +148,6 @@ in
 
   fonts.packages = with pkgs; [ font-awesome noto-fonts pkgs.nerd-fonts._0xproto pkgs.nerd-fonts.droid-sans-mono fira-code-symbols jetbrains-mono ];
 
-  environment.systemPackages = PackageList;
+  environment.systemPackages = PackageList ;
   system.stateVersion = "25.05";
 }
