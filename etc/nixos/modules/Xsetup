@@ -1,5 +1,9 @@
-#!/bin/sh
+#!/run/current-system/sw/bin/bash
+echo " ====================== START:" $(date +'%a %d %b %H:%M:%S') "======================" >> /etc/nixos/modules/output.log
+
 xrandr \
---output DP-4 --primary --mode 7680x2160 --rate 120 --pos 2160x0 --rotate normal \
---output DP-2 --mode 3840x2160 --rate 60 --pos 0x-1640 --rotate left \
---output HDMI-A-1 --mode 3840x2160 --rate 60 --pos 9840x-1640 --rotate left
+--output DP-2 --mode 3840x2160 --rate 60 --pos 0x-1640 --rotate right \
+--output DP-4.8 --primary --mode 7680x2160 --rate 120 --pos 2160x0 --rotate normal \
+--output HDMI-0 --mode 3840x2160 --rate 60 --pos 9840x-1640 --rotate right >> /etc/nixos/modules/output.log
+
+echo " ======================= END:" $(date +'%a %d %b %H:%M.%S') "=======================" >> /etc/nixos/modules/output.log
