@@ -13,4 +13,9 @@ lib.mkIf (config.install.system.graphic == "xorg") {
       };
     };
   };
+
+  environment.systemPackages = with pkgs; [
+    maim xorg.xrandr arandr
+  ];
+
 }

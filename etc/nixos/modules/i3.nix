@@ -13,6 +13,8 @@ lib.mkIf (config.install.system.desktop == "i3") {
   #services.xserver.xinit.enable = "true";
   #services.xserver.xinit.script = '' exec ${pkgs.i3}/bin/i3 '';
 
+  programs.dconf.enable = true;
+
   environment.systemPackages = with pkgs; [
     desktop-file-utils xdotool wmctrl whisper-cpp hidapi libusb1 open-webui
     i3-gaps i3status i3lock-color i3-layout-manager i3-cycle-focus i3-back i3-volume polybar picom rofi dmenu dunst jgmenu

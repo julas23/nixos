@@ -37,15 +37,15 @@ in
     clementine picard amarok strawberry
 
 #### system
-    alsa-firmware alsa-utils arandr networkmanagerapplet exo font-manager eww parted
-    pciutils vulkan-loader vulkan-tools xorg.xrandr microcode-amd doublecmd pcmanfm freerdp git jq mc
-    glxinfo lsof micro dmidecode lshw lm_sensors nixd sysstat gparted multipath-tools
+    alsa-firmware alsa-utils networkmanagerapplet exo font-manager eww parted tzdata themechanger
+    pciutils vulkan-loader vulkan-tools microcode-amd doublecmd pcmanfm freerdp git jq mc 
+    glxinfo lsof micro dmidecode lshw lm_sensors nixd sysstat gparted multipath-tools util-linux
 
 #### terminal
-    termite zsh oh-my-zsh fish oh-my-fish alacritty alacritty-theme btop cava tmux ansible eza inxi htop neofetch terminator
+    kitty termite terminator zsh oh-my-zsh fish oh-my-fish alacritty alacritty-theme btop cava tmux ansible eza inxi htop neofetch
 
 #### tools
-    wavebox kdePackages.okular grimblast pipewire pwvucontrol
+    wavebox kdePackages.okular pipewire pwvucontrol xclip
     popsicle blueman nano nettools nfs-utils mlocate p7zip curl nvme-cli usbutils links2 lynx xorg.xkill
     rpi-imager rdesktop remmina system-config-printer unrar unzip virtualbox numlockx file dnsutils whois
     pkgs.gnome-calculator wget xdg-utils xdg-desktop-portal psmisc procps bc rofi-screenshot exfatprogs
@@ -56,6 +56,7 @@ in
 #### themes
     tela-icon-theme arc-theme arc-icon-theme dracula-icon-theme kdePackages.breeze-icons
     kdePackages.oxygen-icons mint-l-icons windows10-icons material-design-icons pkgs.adwaita-icon-theme
+    xorg.xcursorthemes breeze-hacked-cursor-theme xcursor-pro simp1e-cursors
 
 #### opcional
     lsyncd steam lutris

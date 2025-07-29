@@ -34,6 +34,9 @@ in
     ./locale-br.nix
     ./locale-pt.nix
     ./locale-us.nix 
+
+    <home-manager/nixos>
+
   ];
 
   install.system = {
@@ -51,6 +54,7 @@ in
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelModules = [ "hid-corsair-void" ];
   boot.kernelPackages = pkgs.linuxPackages_6_12;
+  virtualisation.virtualbox.host.enable = true;
 
   hardware.enableAllFirmware = true;
   hardware.graphics.enable = true;

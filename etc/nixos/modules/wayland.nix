@@ -15,7 +15,7 @@ lib.mkIf (config.install.system.graphic == "wayland") {
   };
 
   environment.systemPackages = with pkgs; [
-    wlogout swaybg wofi
+    wlogout swaybg wofi grimblast wlr-randr
   ];
 
   environment.variables = {

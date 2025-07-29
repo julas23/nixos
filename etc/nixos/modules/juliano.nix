@@ -33,5 +33,8 @@ lib.mkIf (config.install.system.user == "juliano") {
     group = "juliano";
     source = "/opt/brweather/brweather";
   };
+
   services.getty.autologinUser = "juliano";
+
+  home-manager.users.juliano = import ./home.nix;
 }
