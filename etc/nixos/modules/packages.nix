@@ -13,6 +13,7 @@ let
     jupyterlab
     pip
     requests
+    newsapi-python
   ]);
 in
 
@@ -23,7 +24,7 @@ in
     chromium transmission_4-gtk brave tor-browser-bundle-bin
 
 #### development
-    dbeaver-bin vscode lens dart-sass nodejs_24 npm-check sqlite
+    dbeaver-bin vscode vscodium lens dart-sass nodejs_24 npm-check sqlite
 
 #### office
     bitwarden sublime4 libreoffice simple-scan brscan5
@@ -38,14 +39,14 @@ in
 
 #### system
     alsa-firmware alsa-utils networkmanagerapplet exo font-manager eww parted tzdata themechanger
-    pciutils vulkan-loader vulkan-tools microcode-amd doublecmd pcmanfm freerdp git jq mc 
+    pciutils vulkan-loader vulkan-tools microcode-amd doublecmd pcmanfm freerdp git jq mc thunderbird
     glxinfo lsof micro dmidecode lshw lm_sensors nixd sysstat gparted multipath-tools util-linux
 
 #### terminal
     kitty termite terminator zsh oh-my-zsh fish oh-my-fish alacritty alacritty-theme btop cava tmux ansible eza inxi htop neofetch
 
 #### tools
-    wavebox kdePackages.okular pipewire pwvucontrol xclip
+    kdePackages.okular pipewire pwvucontrol xclip rpiboot xarchiver wavebox
     popsicle blueman nano nettools nfs-utils mlocate p7zip curl nvme-cli usbutils links2 lynx xorg.xkill
     rpi-imager rdesktop remmina system-config-printer unrar unzip virtualbox numlockx file dnsutils whois
     pkgs.gnome-calculator wget xdg-utils xdg-desktop-portal psmisc procps bc rofi-screenshot exfatprogs

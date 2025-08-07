@@ -5,7 +5,7 @@ lib.mkIf (config.install.system.user == "juliano") {
     isSystemUser = true;
     uid = 369;
     group = "juliano";
-    extraGroups = [ "networkmanager" "wheel" "users" "video" "input" "plugdev" "lp" "scanner" "openrazer" "mlocate" "renders" ];
+    extraGroups = [ "networkmanager" "wheel" "users" "video" "input" "plugdev" "lp" "scanner" "openrazer" "mlocate" "renders" "vboxusers" ];
     home = "/home/juliano";
     homeMode = "755";
     useDefaultShell = true;
@@ -36,5 +36,4 @@ lib.mkIf (config.install.system.user == "juliano") {
 
   services.getty.autologinUser = "juliano";
 
-  home-manager.users.juliano = import ./home.nix;
 }

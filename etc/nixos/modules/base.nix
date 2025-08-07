@@ -5,7 +5,6 @@ let
 in
 
 {
-
   imports = [
     ./packages.nix
     ./fonts.nix
@@ -30,13 +29,11 @@ in
 
     ./juliano.nix
     ./normaluser.nix
+    ./lsyncd.nix
 
     ./locale-br.nix
     ./locale-pt.nix
     ./locale-us.nix 
-
-    <home-manager/nixos>
-
   ];
 
   install.system = {
@@ -48,13 +45,21 @@ in
     locale = "us";
     mount = "S";
     ollama = "S";
+    lsyncd = "S";
   };
+
+  nixpkgs.config.permittedInsecurePackages = [ "openssl-1.1.1w" "wavebox-10.137.11-2" ];
 
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelModules = [ "hid-corsair-void" ];
   boot.kernelPackages = pkgs.linuxPackages_6_12;
+
   virtualisation.virtualbox.host.enable = true;
+  virtualisation.virtualbox.guest.enable = true;
+  virtualisation.virtualbox.guest.dragAndDrop = true;
+  users.extraGroups.vboxusers.members = [ "juliano" ];
+  virtualisation.virtualbox.host.enableExtensionPack = true;
 
   hardware.enableAllFirmware = true;
   hardware.graphics.enable = true;
@@ -66,7 +71,6 @@ in
   hardware.steam-hardware.enable = true;
 
   nixpkgs.config.allowUnfree = true;
-  nixpkgs.config.permittedInsecurePackages = [ "openssl-1.1.1w" ];
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   networking.networkmanager.enable = true;

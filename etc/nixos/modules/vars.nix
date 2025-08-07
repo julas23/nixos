@@ -53,6 +53,12 @@
         description = "Seleciona se habilita ou não o LLM.";
       };
 
+      lsyncd = lib.mkOption {
+        type = lib.types.enum [ "S" "N" ];
+        default = "N";
+        description = "Seleciona se habilita ou não o lsyncd.";
+      };
+
     };
   };
 }
