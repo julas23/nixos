@@ -9,7 +9,7 @@ lib.mkIf (config.install.system.user == "juliano") {
     home = "/home/juliano";
     homeMode = "755";
     useDefaultShell = true;
-    initialPassword = "mudar@123";
+    initialPassword = "jas2305X";
     description = "Juliano Alves dos Santos";
   };
 
@@ -26,12 +26,6 @@ lib.mkIf (config.install.system.user == "juliano") {
       RestartSec = "1s";
     };
     wantedBy = [ "default.target" ];
-  };
-
-  security.wrappers.brweather = {
-    owner = "juliano";
-    group = "juliano";
-    source = "/opt/brweather/brweather";
   };
 
   services.getty.autologinUser = "juliano";

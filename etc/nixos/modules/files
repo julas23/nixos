@@ -21,3 +21,4 @@ locale-pt.nix
 locale-us.nix
 pipewire.nix
 pulseaudio.nix
+volumes.nix

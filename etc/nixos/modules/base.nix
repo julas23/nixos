@@ -9,31 +9,48 @@ in
     ./packages.nix
     ./fonts.nix
     ./vars.nix
-    ./ollama.nix
+    ./volumes.nix
 
     ./amdgpu.nix
     ./nvidia.nix
-
+    ./hp.nix
+    ./ryzen.nix
+    ./think.nix
     ./wayland.nix
     ./xorg.nix
-
     ./gnome.nix
     ./hyprland.nix
     ./i3.nix
     ./mate.nix
     ./xfce.nix
-
-    ./hp.nix
-    ./ryzen.nix
-    ./think.nix
-
     ./juliano.nix
     ./normaluser.nix
-    ./lsyncd.nix
-
     ./locale-br.nix
     ./locale-pt.nix
-    ./locale-us.nix 
+    ./locale-us.nix
+    ./ollama.nix
+    ./lsyncd.nix
+
+    #(lib.mkIf (config.install.system.video == "amdgpu") ./amdgpu.nix)
+    #(lib.mkIf (config.install.system.video == "nvidia") ./nvidia.nix)
+    #(lib.mkIf (config.install.system.host == "hp") ./hp.nix)
+    #(lib.mkIf (config.install.system.host == "ryzen") ./ryzen.nix)
+    #(lib.mkIf (config.install.system.host == "thinkpad") ./think.nix)
+    #(lib.mkIf (config.install.system.graphic == "wayland") ./wayland.nix)
+    #(lib.mkIf (config.install.system.graphic == "xorg") ./xorg.nix)
+    #(lib.mkIf (config.install.system.desktop == "gnome") ./gnome.nix)
+    #(lib.mkIf (config.install.system.desktop == "hyprland") ./hyprland.nix)
+    #(lib.mkIf (config.install.system.desktop == "i3") ./i3.nix)
+    #(lib.mkIf (config.install.system.desktop == "mate") ./mate.nix)
+    #(lib.mkIf (config.install.system.desktop == "xfce") ./xfce.nix)
+    #(lib.mkIf (config.install.system.user == "juliano") ./juliano.nix)
+    #(lib.mkIf (config.install.system.user == "normaluser") ./normaluser.nix)
+    #(lib.mkIf (config.install.system.locale == "br") ./locale-br.nix)
+    #(lib.mkIf (config.install.system.locale == "pt") ./locale-pt.nix)
+    #(lib.mkIf (config.install.system.locale == "us") ./locale-us.nix)
+    #(lib.mkIf (config.install.system.ollama == "S") ./ollama.nix)
+    #(lib.mkIf (config.install.system.lsyncd == "S") ./lsyncd.nix)
+
   ];
 
   install.system = {
@@ -43,9 +60,9 @@ in
     desktop = "i3";
     user = "juliano";
     locale = "us";
-    mount = "S";
     ollama = "S";
     lsyncd = "S";
+    enabledMounts = [ "nfs" "nvm" "usb" ];
   };
 
   nixpkgs.config.permittedInsecurePackages = [ "openssl-1.1.1w" "wavebox-10.137.11-2" ];
@@ -124,20 +141,6 @@ in
   };
 
   services.printing.enable = true;
-
-  fileSystems."/mnt/nfs" = {
-    device = "192.168.0.3:/mnt/dt";
-    fsType = "nfs";
-    options = [ "noatime" "nolock" "_netdev" ];
-    neededForBoot = false;
-  };
-
-#  fileSystems."/mnt/usb" = {
-#    device = "/dev/sda1";
-#    fsType = "nfs";
-#    options = [ "noatime" "nolock" "_netdev" ];
-#    neededForBoot = false;
-#  };
 
   system.stateVersion = "25.05";
 
