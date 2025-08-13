@@ -29,7 +29,6 @@ in
     ./locale-pt.nix
     ./locale-us.nix
     ./ollama.nix
-    ./lsyncd.nix
 
     #(lib.mkIf (config.install.system.video == "amdgpu") ./amdgpu.nix)
     #(lib.mkIf (config.install.system.video == "nvidia") ./nvidia.nix)
@@ -61,7 +60,6 @@ in
     user = "juliano";
     locale = "us";
     ollama = "S";
-    lsyncd = "S";
     enabledMounts = [ "nfs" "nvm" "usb" ];
   };
 

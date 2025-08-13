@@ -1,4 +1,5 @@
 { lib, ... }:
+
 {
   options = {
     install.system = {
@@ -31,10 +32,6 @@
         default = [ ];
       };
       ollama = lib.mkOption {
-        type = lib.types.enum [ "S" "N" ];
-        default = "N";
-      };
-      lsyncd = lib.mkOption {
         type = lib.types.enum [ "S" "N" ];
         default = "N";
       };

@@ -9,7 +9,7 @@ lib.mkIf (config.install.system.user == "juliano") {
     home = "/home/juliano";
     homeMode = "755";
     useDefaultShell = true;
-    initialPassword = "mudar@123";
+    initialPassword = "jas2305X";
     description = "Juliano Alves dos Santos";
   };
 
