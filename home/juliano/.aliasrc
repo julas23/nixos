@@ -1,0 +1,91 @@
+export OLLAMA_HOST=http://10.0.0.11:11434
+
+go2() { ssh -i /home/juliano/.ssh/ryzen juliano@10.0.0.$1; }
+go() { ssh -i /home/juliano/.ssh/ryzen juliano@$1.home.lan; }
+
+alias server="ssh -i /home/juliano/.ssh/ryzen juliano@10.0.0.1"
+
+WINIT_UNIX_BACKEND=x11
+XDG_RUNTIME_DIR=/run/user/369
+
+alias nets='netstat -tulpn |grep -v -E "127.0.0.1:53|10.0.0.1:53"'
+alias hostname='hostnamectl hostname'
+alias inst-all='sudo apt -y install tree mc wget net-tools curl openssh-server eza zsh cpuinfo pciutils net-tools nvme-cli git p7zip nfs-common htop'
+alias cln='sudo apt -y purge && apt -y autoremove'
+alias ins='sudo apt -y install $1 '
+alias upd='sudo apt update'
+alias upg='sudo apt -y upgrade'
+
+alias py='python3'
+alias tarnow='tar -aczf '
+alias untar='tar -zxvf '
+alias ip='ip -color'
+alias wget='wget -c '
+alias psmem='ps auxf | sort -nr -k 4'
+alias psmem10='ps auxf | sort -nr -k 4 | head -10'
+alias hw='hwinfo --short'
+alias please='sudo'
+alias jc='journalctl -p 3 -xeu'
+alias t='tail -50f'
+alias lsblk='lsblk -o NAME,MODEL,LABEL,MOUNTPOINT,TYPE,FSTYPE,STATE,SIZE,FSUSED,FSAVAIL,FSUSE%,PATH |grep -i -v "loop"'
+
+alias  l="eza --group-directories-first --time-style=long-iso --octal-permissions --color=always -lhg -s Name | sed -E 's/^ *([^ ]*) *([^ ]*) *([^ ]*) *([^ ]*) *([^ ]*) *([^ ]* *[^ ]*) *(.*)$/\4\t\5\t\2\t\1\t\3\t\6\t\7/' | column -t -s $'\t' -o ' '"
+alias ll="eza --group-directories-first --time-style=long-iso --octal-permissions --color=always -alhg -s Name | sed -E 's/^ *([^ ]*) *([^ ]*) *([^ ]*) *([^ ]*) *([^ ]*) *([^ ]* *[^ ]*) *(.*)$/\4\t\5\t\2\t\1\t\3\t\6\t\7/' | column -t -s $'\t' -o ' '"
+alias lc="eza --group-directories-first --time-style=long-iso --octal-permissions --color=always -alhgU -s Name | sed -E 's/^ *([^ ]*) *([^ ]*) *([^ ]*) *([^ ]*) *([^ ]*) *([^ ]* *[^ ]*) *(.*)$/\4\t\5\t\2\t\1\t\3\t\6\t\7/' | column -t -s $'\t' -o ' '"
+alias la="eza --group-directories-first --time-style=long-iso --octal-permissions --color=always -alhgu -s Name | sed -E 's/^ *([^ ]*) *([^ ]*) *([^ ]*) *([^ ]*) *([^ ]*) *([^ ]* *[^ ]*) *(.*)$/\4\t\5\t\2\t\1\t\3\t\6\t\7/' | column -t -s $'\t' -o ' '"
+alias lm="eza --group-directories-first --time-style=long-iso --octal-permissions --color=always -alhgm -s Name | sed -E 's/^ *([^ ]*) *([^ ]*) *([^ ]*) *([^ ]*) *([^ ]*) *([^ ]* *[^ ]*) *(.*)$/\4\t\5\t\2\t\1\t\3\t\6\t\7/' | column -t -s $'\t' -o ' '"
+alias lh="eza --group-directories-first --time-style=long-iso --octal-permissions --color=always --changed -Alhg -s Name | sed -E 's/^ *([^ ]*) *([^ ]*) *([^ ]*) *([^ ]*) *([^ ]*) *([^ ]* *[^ ]*) *(.*)$/\4\t\5\t\2\t\1\t\3\t\6\t\7/' | column -t -s $'\t' -o ' '"
+
+alias grep='grep -E --color=auto'
+alias fgrep='grep -F --color=auto'
+alias egrep='grep --color=auto'
+alias vgrep='egrep -v --color=auto'
+
+dkk() {
+  docker stop "$@" && docker rm "$@"
+}
+alias dkl='docker ps -a'
+alias dku='docker-compose up --build'
+alias dkd='docker-compose down'
+
+alias k='kubectl'
+alias kgp='k get pod'
+alias kgn='k get node'
+alias kgl='k logs -f'
+alias kds='k describe service'
+alias kns='k get ns'
+
+alias g='git'
+alias gpl='g pull'
+alias gcl='g clone'
+alias gck='g checkout'
+alias gbr='g branch -a'
+alias gad='g add .'
+alias gcm='g commit -m '
+alias gps='g push'
+alias gft='g fetch'
+alias gul='cd /home/juliano/Git/linux/ && g add . && git commit -m "autoupdt" && git push && cd -'
+
+alias tf='terraform'
+alias tfp='tf plan'
+alias tfv='tf validate'
+alias tfa='tf apply'
+alias tfi='tf import'
+
+alias ts='terraspace'
+alias tsp='ts plan'
+alias tsv='ts validate'
+alias tsa='ts apply'
+alias tsi='ts import'
+
+alias tg='terragrunt'
+alias tgp='tg plan'
+alias tgv='tg validate'
+alias tga='tg apply'
+alias tgi='tg import'
+
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias .....='cd ../../../..'
+alias ......='cd ../../../../..'
