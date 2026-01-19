@@ -1,7 +1,0 @@
-[Desktop Entry]
-Name=Chromium
-Exec=chromium
-Icon=./chromium.png
-Type=Application
-Categories=Utility;
-Terminal=false

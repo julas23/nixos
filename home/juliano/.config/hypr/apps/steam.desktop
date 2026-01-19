@@ -1,7 +1,0 @@
-[Desktop Entry]
-Name=Steam
-Exec=steam
-Icon=./steam.png
-Type=Application
-Categories=Utility;
-Terminal=false

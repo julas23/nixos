@@ -1,7 +1,0 @@
-[Desktop Entry]
-Name=Polychromatic
-Exec=polychromatic-controller
-Icon=./polychromatic.png
-Type=Application
-Categories=Utility;
-Terminal=false

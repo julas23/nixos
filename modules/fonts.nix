@@ -1,0 +1,42 @@
+{ config, lib, pkgs, ... }:
+
+{
+  fonts.packages = with pkgs; [
+    dejavu_fonts
+    roboto
+    liberation_ttf
+    open-sans
+    inter
+    overpass
+    noto-fonts
+    noto-fonts-cjk-sans
+    noto-fonts-cjk-serif
+    noto-fonts-color-emoji
+    wqy_microhei
+    lxgw-wenkai
+    lxgw-neoxihei
+    roboto-mono
+    ibm-plex
+    camingo-code
+    victor-mono
+    iosevka
+    source-code-pro
+    cascadia-code
+    fira-code
+    nerd-fonts._0xproto
+    nerd-fonts.droid-sans-mono
+    nerd-fonts.fira-code
+    nerd-fonts._3270
+    nerd-fonts.hack
+    nerd-fonts.meslo-lg
+    nerd-fonts.jetbrains-mono
+    nerd-fonts.adwaita-mono
+    nerd-fonts.agave
+    jetbrains-mono
+    font-awesome
+    papirus-icon-theme
+    material-design-icons
+    adwaita-icon-theme
+    terminus_font
+ ];
+}

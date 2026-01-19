@@ -1,7 +1,0 @@
-[Desktop Entry]
-Name=Sudo Kitty
-Exec=kitty --class sudo
-Icon=sudo_kitty
-Type=Application
-Categories=Utility;
-Terminal=false

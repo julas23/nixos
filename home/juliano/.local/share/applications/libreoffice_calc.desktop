@@ -1,7 +1,0 @@
-[Desktop Entry]
-Name=LibreOffice Calc
-Exec=libreoffice --calc
-Icon=libreoffice_calc
-Type=Application
-Categories=Utility;
-Terminal=false

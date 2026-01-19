@@ -1,7 +1,0 @@
-[Desktop Entry]
-Name=Screenshot
-Exec=gnome-screenshot
-Icon=./screenshot.png
-Type=Application
-Categories=Utility;
-Terminal=false

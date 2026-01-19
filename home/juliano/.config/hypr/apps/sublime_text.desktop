@@ -1,7 +1,0 @@
-[Desktop Entry]
-Name=Sublime Text
-Exec=sublime_text
-Icon=./sublime_text.png
-Type=Application
-Categories=Utility;
-Terminal=false

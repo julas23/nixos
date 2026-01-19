@@ -1,7 +1,0 @@
-[Desktop Entry]
-Name=Caja
-Exec=caja
-Icon=./caja.png
-Type=Application
-Categories=Utility;
-Terminal=false

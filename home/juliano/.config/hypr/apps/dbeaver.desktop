@@ -1,7 +1,0 @@
-[Desktop Entry]
-Name=DBeaver
-Exec=dbeaver
-Icon=./dbeaver.png
-Type=Application
-Categories=Utility;
-Terminal=false

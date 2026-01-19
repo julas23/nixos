@@ -1,7 +1,0 @@
-[Desktop Entry]
-Name=OBS Studio
-Exec=obs
-Icon=./obs_studio.png
-Type=Application
-Categories=Utility;
-Terminal=false
