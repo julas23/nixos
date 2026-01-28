@@ -4,27 +4,27 @@
   options = {
     install.system = {
       host = lib.mkOption {
-        type = lib.types.enum [ "ryzen" "hp" "think" ];
+        type = lib.types.enum [ "ryzen" "hp" "think" "server" ];
         default = "ryzen";
       };
       desktop = lib.mkOption {
-        type = lib.types.enum [ "gnome" "hyprland" "i3" "xfce" "mate" "cosmic" "text" ];
-        default = "text";
+        type = lib.types.enum [ "gnome" "hyprland" "i3" "xfce" "mate" "cosmic" ];
+        default = " ";
       };
       graphic = lib.mkOption {
         type = lib.types.enum [ "xorg" "wayland" ];
-        default = "xorg";
+        default = "wayland";
       };
       user = lib.mkOption {
-        type = lib.types.enum [ "juliano" "normaluser" ];
-        default = "juliano";
+        type = lib.types.enum [ "user" ];
+        default = "user";
       };
       video = lib.mkOption {
-        type = lib.types.enum [ "nvidia" "amdgpu" "vm" ];
-        default = "vm";
+        type = lib.types.enum [ "nvidia" "amdgpu" "intel" "vm" ];
+        default = " ";
       };
       locale = lib.mkOption {
-        type = lib.types.enum [ "us" "br" "pt" ];
+        type = lib.types.enum [ "us" "br" ];
         default = "us";
       };
       enabledMounts = lib.mkOption {

@@ -6,7 +6,6 @@ in
 
 {
   imports = [
-    ./chromium-fix.nix
     ./packages.nix
     ./fonts.nix
     ./vars.nix
@@ -45,10 +44,8 @@ in
     #(lib.mkIf (config.install.system.desktop == "mate") ./mate.nix)
     #(lib.mkIf (config.install.system.desktop == "cosmic") ./cosmic.nix)
     #(lib.mkIf (config.install.system.desktop == "xfce") ./xfce.nix)
-    #(lib.mkIf (config.install.system.user == "juliano") ./juliano.nix)
-    #(lib.mkIf (config.install.system.user == "normaluser") ./normaluser.nix)
+    #(lib.mkIf (config.install.system.user == "user") ./user.nix)
     #(lib.mkIf (config.install.system.locale == "br") ./locale-br.nix)
-    #(lib.mkIf (config.install.system.locale == "pt") ./locale-pt.nix)
     #(lib.mkIf (config.install.system.locale == "us") ./locale-us.nix)
     #(lib.mkIf (config.install.system.ollama == "S") ./ollama.nix)
     #(lib.mkIf (config.install.system.lsyncd == "S") ./lsyncd.nix)
@@ -59,7 +56,7 @@ in
     graphic = "wayland";
     desktop = "cosmic";
     user = "juliano";
-    locale = "br";
+    locale = "us";
     ollama = "N";
     #enabledMounts = [ "usb" ];
   };
@@ -77,9 +74,6 @@ in
   boot.loader.efi.canTouchEfiVariables = true;
   #boot.kernelModules = [ "hid-corsair-void" ];
   boot.kernelPackages = pkgs.linuxPackages_6_12;
-  boot.kernel.sysctl = {
-    "net.ipv4.ip_forward" = 1;
-  };
 
   #DOCKER
   virtualisation.docker.enable = true;
@@ -138,11 +132,9 @@ in
   networking.search = [ "home.local" ];
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ 31416 11434  8080  22 ];
-    allowedUDPPorts = [ 31416 ];
-    trustedInterfaces = [ "tun0" ];
+    allowedTCPPorts = [ 11434  8080  22 ];
   };
-  
+
   security.rtkit.enable = true;
 
   #services.xserver.desktopManager.plasma5.enable = false;
@@ -181,7 +173,8 @@ in
 
   services.printing.enable = true;
 
-  programs.adb.enable = true;
+programs.adb.enable = true;
+
   systemd.user.services.pixel-bridge = {
     description = "Reverse Tethering para o Pixel 8 Pro";
     serviceConfig = {
@@ -192,24 +185,6 @@ in
     wantedBy = [ "default.target" ];
   };
 
-  #Android ADB/Fastboot
-  users.groups.adbusers = {};
-  services.udev.extraRules = ''
-    SUBSYSTEM=="usb", ATTR{idVendor}=="18d1", ATTR{idProduct}=="4ee7", MODE="0666", GROUP="adbusers"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="18d1", ATTR{idProduct}=="4ee0", MODE="0666", GROUP="adbusers"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="22b8", MODE="0666", GROUP="adbusers"
-    SUBSYSTEM=="usb", ATTR{idVendor}=="0bb4", MODE="0666", GROUP="adbusers"
-  '';
-  environment.systemPackages = with pkgs; [
-    android-tools
-    file
-    dtc
-    libfaketime
-    abootimg
-  ];
-
-  users.users.juliano.extraGroups = [ "adbusers" "kvm" ];
-
-  system.stateVersion = "25.11";
+  system.stateVersion = "25.05";
 
 }

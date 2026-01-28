@@ -1,8 +1,14 @@
-cat > ~/nixos-config/modules/gpu-amd.nix << 'EOF'
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
-{
-  # Drivers AMD
+lib.mkIf (config.install.system.video == "amdgpu") {
+
+  boot.initrd.kernelModules = [ "amdgpu" ];
+
+  services.xserver.videoDrivers = [ "amdgpu" ];
+
+  hardware.graphics.enable = true;
+  hardware.amdgpu.opencl.enable = true;
+
   hardware.opengl = {
     enable = true;
     driSupport = true;
@@ -17,24 +23,20 @@ cat > ~/nixos-config/modules/gpu-amd.nix << 'EOF'
     ];
   };
   
-  # ROCm para computação
   hardware.rocm = {
     enable = true;
     package = pkgs.rocmPackages.clr;
   };
   
-  # Vulkan
   hardware.graphics.extraPackages = with pkgs; [
     vulkan-loader
     vulkan-validation-layers
     vulkan-tools
   ];
   
-  # Monitoramento GPU
   environment.systemPackages = with pkgs; [
     rocm-smi
     radeontop
     clinfo
   ];
 }
-EOF

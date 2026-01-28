@@ -1,4 +1,3 @@
-cat > ~/nixos-config/modules/docker.nix << 'EOF'
 { config, pkgs, ... }:
 
 {
@@ -20,7 +19,6 @@ cat > ~/nixos-config/modules/docker.nix << 'EOF'
   virtualisation.oci-containers.backend = "docker";
   
   virtualisation.oci-containers.containers = {
-    # CasaOS
     casaos = {
       image = "casaos/casaos:latest";
       ports = ["80:80"];
@@ -31,7 +29,6 @@ cat > ~/nixos-config/modules/docker.nix << 'EOF'
       extraOptions = ["--network=host"];
     };
     
-    # Jellyfin
     jellyfin = {
       image = "jellyfin/jellyfin:latest";
       ports = ["8096:8096" "8920:8920"];
@@ -46,7 +43,6 @@ cat > ~/nixos-config/modules/docker.nix << 'EOF'
       ];
     };
     
-    # Nextcloud
     nextcloud = {
       image = "nextcloud:latest";
       ports = ["8080:80"];
@@ -63,4 +59,3 @@ cat > ~/nixos-config/modules/docker.nix << 'EOF'
     };
   };
 }
-EOF
