@@ -19,6 +19,14 @@ echo "=================================================="
 echo "   NIXOS PROVISIONER - INSTALAÇÃO COMPLETA        "
 echo "=================================================="
 
+# 0. Verificação de Internet
+log_step "Verificando conexão com a internet..."
+if ! ping -c 1 google.com &> /dev/null; then
+    log_error "Sem conexão com a internet! Conecte-se via nmtui ou nmcli antes de continuar."
+    exit 1
+fi
+log_success "Internet OK!"
+
 # 1. Seleção de Disco
 log_step "Detectando discos..."
 lsblk -p -d -n -o NAME,SIZE,MODEL
