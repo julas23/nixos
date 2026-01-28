@@ -1,9 +1,5 @@
 { config, lib, pkgs, ... }:
 
-let
-  #options.steam.enable = lib.mkEnableOption "Enable Steam";
-in
-
 {
   imports = [
     ./packages.nix
@@ -12,6 +8,7 @@ in
     ./volumes.nix
     ./amdgpu.nix
     ./nvidia.nix
+    ./intel.nix
     ./hp.nix
     ./ryzen.nix
     ./think.nix
@@ -22,48 +19,27 @@ in
     ./i3.nix
     ./mate.nix
     ./xfce.nix
-    ./juliano.nix
-    ./normaluser.nix
+    ./user.nix
     ./locale-br.nix
-    ./locale-pt.nix
     ./locale-us.nix
     ./ollama.nix
     ./cosmic.nix
   ];
-
-    #(lib.mkIf (config.install.system.video == "amdgpu") ./amdgpu.nix)
-    #(lib.mkIf (config.install.system.video == "nvidia") ./nvidia.nix)
-    #(lib.mkIf (config.install.system.host == "hp") ./hp.nix)
-    #(lib.mkIf (config.install.system.host == "ryzen") ./ryzen.nix)
-    #(lib.mkIf (config.install.system.host == "thinkpad") ./think.nix)
-    #(lib.mkIf (config.install.system.graphic == "wayland") ./wayland.nix)
-    #(lib.mkIf (config.install.system.graphic == "xorg") ./xorg.nix)
-    #(lib.mkIf (config.install.system.desktop == "gnome") ./gnome.nix)
-    #(lib.mkIf (config.install.system.desktop == "hyprland") ./hyprland.nix)
-    #(lib.mkIf (config.install.system.desktop == "i3") ./i3.nix)
-    #(lib.mkIf (config.install.system.desktop == "mate") ./mate.nix)
-    #(lib.mkIf (config.install.system.desktop == "cosmic") ./cosmic.nix)
-    #(lib.mkIf (config.install.system.desktop == "xfce") ./xfce.nix)
-    #(lib.mkIf (config.install.system.user == "user") ./user.nix)
-    #(lib.mkIf (config.install.system.locale == "br") ./locale-br.nix)
-    #(lib.mkIf (config.install.system.locale == "us") ./locale-us.nix)
-    #(lib.mkIf (config.install.system.ollama == "S") ./ollama.nix)
-    #(lib.mkIf (config.install.system.lsyncd == "S") ./lsyncd.nix)
 
   install.system = {
     video = "amdgpu";
     host = "hp";
     graphic = "wayland";
     desktop = "cosmic";
-    user = "juliano";
+    user = "user";
     locale = "us";
     ollama = "N";
-    #enabledMounts = [ "usb" ];
   };
+
   system.activationScripts.createDataDirs = {
     text = ''
       mkdir -p /data/docker /data/python /data/node /data/rust
-      chown -R juliano:users /data
+      chown -R @USERNAME@:users /data
       chmod -R 755 /data
     '';
   };
@@ -72,8 +48,7 @@ in
 
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  #boot.kernelModules = [ "hid-corsair-void" ];
-  boot.kernelPackages = pkgs.linuxPackages_6_12;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   #DOCKER
   virtualisation.docker.enable = true;
@@ -94,22 +69,16 @@ in
   };
 
   #PYTHON
-  fileSystems."/home/juliano/.local/lib/python3.13" = {
+  fileSystems."/home/@USERNAME@/.local/lib/python3.13" = {
     device = "/data/python/lib";
     options = [ "bind" "nofail" ];
   };
 
   #RUST
-  fileSystems."/home/juliano/.cargo" = {
+  fileSystems."/home/@USERNAME@/.cargo" = {
     device = "/data/rust";
     options = [ "bind" "nofail" ];
   };
-
-  #virtualisation.virtualbox.host.enable = true;
-  #virtualisation.virtualbox.guest.enable = true;
-  #virtualisation.virtualbox.guest.dragAndDrop = true;
-  #users.extraGroups.vboxusers.members = [ "juliano" ];
-  #virtualisation.virtualbox.host.enableExtensionPack = true;
 
   hardware.enableAllFirmware = true;
   hardware.graphics.enable = true;
@@ -120,11 +89,10 @@ in
   hardware.bluetooth.powerOnBoot = true;
   hardware.logitech.wireless.enable = true;
   hardware.logitech.wireless.enableGraphical = true;
-  #hardware.steam-hardware.enable = true;
 
   nixpkgs.config.allowUnfree = true;
-  nix.settings.experimental-features = [ "nix-command" ];
-  nix.settings.trusted-users = [ "root" "juliano" ];
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.trusted-users = [ "root" "@USERNAME@" ];
 
   networking.networkmanager.enable = true;
   networking.networkmanager.wifi.powersave = false;
@@ -137,7 +105,6 @@ in
 
   security.rtkit.enable = true;
 
-  #services.xserver.desktopManager.plasma5.enable = false;
   services.xserver.enable = true;
   services.libinput.enable = true;
   services.openssh.enable = true;
@@ -148,10 +115,13 @@ in
   services.blueman.enable = true;
   services.journald.extraConfig = '' Storage=persistent '';
   services.flatpak.enable = true;
+  
   xdg.portal = {
     enable = true;
-    extraPortals = [ pkgs.xdg-desktop-portal-cosmic ];
-    config.common.default = [ "cosmic" ]; 
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ]
+      ++ lib.optional (config.install.system.desktop == "cosmic") pkgs.xdg-desktop-portal-cosmic
+      ++ lib.optional (config.install.system.desktop == "hyprland") pkgs.xdg-desktop-portal-hyprland;
+    config.common.default = [ "gtk" ];
   };
 
   services.pulseaudio.enable = false;
@@ -159,6 +129,7 @@ in
     enable = true;
     alsa.enable = true;
     alsa.support32Bit = true;
+    pulse.enable = true;
   };
 
   services.avahi = {
@@ -173,7 +144,7 @@ in
 
   services.printing.enable = true;
 
-programs.adb.enable = true;
+  programs.adb.enable = true;
 
   systemd.user.services.pixel-bridge = {
     description = "Reverse Tethering para o Pixel 8 Pro";
@@ -185,6 +156,6 @@ programs.adb.enable = true;
     wantedBy = [ "default.target" ];
   };
 
-  system.stateVersion = "25.05";
+  system.stateVersion = "24.11";
 
 }
