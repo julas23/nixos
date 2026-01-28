@@ -8,6 +8,10 @@
     ./vars.nix
     ./amdgpu.nix
     ./nvidia.nix
+    ./intel.nix
+    ./hp.nix
+    ./ryzen.nix
+    ./think.nix
     ./wayland.nix
     ./xorg.nix
     ./gnome.nix
@@ -23,19 +27,20 @@
   ];
 
   install.system = {
-    video = "";
-    host = "";
-    graphic = "";
-    desktop = "";
-    user = "";
+    video = "amdgpu";
+    host = "hp";
+    graphic = "wayland";
+    desktop = "cosmic";
+    user = "user";
     locale = "us";
-    ollama = "";
+    ollama = "N";
   };
+
   system.activationScripts.createDataDirs = {
     text = ''
       mkdir -p /data/docker /data/python /data/node /data/rust
-      chown -R @USERNAME@:users /data
-      chmod -R 755 /data
+      chown -R @USERNAME@:users /data || true
+      chmod -R 755 /data || true
     '';
   };
 
@@ -43,10 +48,14 @@
 
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  #boot.kernelModules = [ "hid-corsair-void" ];
-  boot.kernelPackages = pkgs.linuxPackages_6_12;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   #DOCKER
+  virtualisation.docker.enable = true;
+  virtualisation.docker.daemon.settings = {
+    data-root = "/data/docker";
+  };
+
   fileSystems."/var/lib/docker" = {
     device = "/data/docker";
     options = [ "bind" ];
@@ -71,12 +80,6 @@
     options = [ "bind" "nofail" ];
   };
 
-  #virtualisation.virtualbox.host.enable = true;
-  #virtualisation.virtualbox.guest.enable = true;
-  #virtualisation.virtualbox.guest.dragAndDrop = true;
-  #users.extraGroups.vboxusers.members = [ "@USERNAME@" ];
-  #virtualisation.virtualbox.host.enableExtensionPack = true;
-
   hardware.enableAllFirmware = true;
   hardware.graphics.enable = true;
   hardware.graphics.enable32Bit = true;
@@ -86,10 +89,9 @@
   hardware.bluetooth.powerOnBoot = true;
   hardware.logitech.wireless.enable = true;
   hardware.logitech.wireless.enableGraphical = true;
-  #hardware.steam-hardware.enable = true;
 
   nixpkgs.config.allowUnfree = true;
-  nix.settings.experimental-features = [ "nix-command" ];
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nix.settings.trusted-users = [ "root" "@USERNAME@" ];
 
   networking.networkmanager.enable = true;
@@ -103,7 +105,6 @@
 
   security.rtkit.enable = true;
 
-  #services.xserver.desktopManager.plasma5.enable = false;
   services.xserver.enable = true;
   services.libinput.enable = true;
   services.openssh.enable = true;
@@ -119,7 +120,7 @@
     enable = true;
     extraPortals = [ pkgs.xdg-desktop-portal-gtk ] 
       ++ lib.optional (config.install.system.desktop == "cosmic") pkgs.xdg-desktop-portal-cosmic
-      #++ lib.optional (config.install.system.desktop == "hyprland") pkgs.xdg-desktop-portal-hyprland;
+      ++ lib.optional (config.install.system.desktop == "hyprland") pkgs.xdg-desktop-portal-hyprland;
     config.common.default = [ "gtk" ];
   };
 
@@ -128,6 +129,7 @@
     enable = true;
     alsa.enable = true;
     alsa.support32Bit = true;
+    pulse.enable = true;
   };
 
   services.avahi = {
@@ -142,7 +144,7 @@
 
   services.printing.enable = true;
 
-programs.adb.enable = true;
+  programs.adb.enable = true;
 
   systemd.user.services.pixel-bridge = {
     description = "Reverse Tethering para o Pixel 8 Pro";
@@ -154,6 +156,6 @@ programs.adb.enable = true;
     wantedBy = [ "default.target" ];
   };
 
-  system.stateVersion = "25.11";
+  system.stateVersion = "24.11";
 
 }
