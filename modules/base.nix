@@ -24,6 +24,7 @@
     ./locale-us.nix
     ./ollama.nix
     ./cosmic.nix
+    ./awesome.nix
   ];
 
   install.system = {
