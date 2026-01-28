@@ -1,36 +1,36 @@
 # Julas NixOS Configuration
 
-Este repositório contém as minhas configurações NixOS unificadas para múltiplos dispositivos (Laptop HP, Thinkpad, Ryzen Desktop e Servidor de IA).
+This repository contains my unified NixOS configurations for multiple devices (HP Laptop, Thinkpad, Ryzen Desktop, and AI Server).
 
-## 🚀 Instalação Rápida
+## 🚀 Quick Installation
 
-Após dar o boot pelo Live USB do NixOS, siga os passos abaixo:
+After booting from the NixOS Live USB, follow the steps below:
 
-### 1. Conectar à Internet
-Se você estiver usando Wi-Fi, utilize o comando interativo:
+### 1. Connect to the Internet
+If you are using Wi-Fi, use the interactive command:
 ```bash
 nmtui
 ```
-*Ou via comando direto:*
+*Or via direct command:*
 ```bash
-nmcli device wifi connect "NOME_DA_REDE" password "SUA_SENHA"
+nmcli device wifi connect "NETWORK_NAME" password "YOUR_PASSWORD"
 ```
 
-### 2. Executar o Instalador
-Uma vez conectado, execute o comando abaixo para iniciar o provisionamento automático:
+### 2. Run the Installer
+Once connected, run the command below to start the automatic provisioning:
 
 ```bash
 curl -L https://raw.githubusercontent.com/julas23/nixos/main/install.sh -o install.sh && chmod +x install.sh && sudo ./install.sh
 ```
 
-## 🛠️ O que o script faz?
-1. **Particionamento**: Configura o disco selecionado (EFI + Root).
-2. **Clonagem**: Baixa este repositório em `/mnt/etc/nixos`.
-3. **Hardware**: Gera o `hardware-configuration.nix` localmente.
-4. **Configuração**: Pergunta seu usuário, hostname, GPU e Desktop desejado.
-5. **Instalação**: Finaliza com o `nixos-install`.
+## 🛠️ What does the script do?
+1. **Partitioning**: Configures the selected disk (EFI + Root).
+2. **Cloning**: Downloads this repository to `/mnt/etc/nixos`.
+3. **Hardware**: Generates `hardware-configuration.nix` locally.
+4. **Configuration**: Prompts for your username, hostname, GPU, and desired Desktop.
+5. **Installation**: Finalizes with `nixos-install`.
 
-## 🖥️ Ambientes Suportados
+## 🖥️ Supported Environments
 - **Desktops**: Cosmic, Hyprland, Gnome, XFCE, Mate, i3, Awesome.
 - **Hardware**: AMDGPU, NVIDIA, Intel, VM.
-- **Serviços**: Docker, Ollama (AI), PostgreSQL, Stable Diffusion.
+- **Services**: Docker, Ollama (AI), PostgreSQL, Stable Diffusion.

@@ -51,7 +51,7 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  #DOCKER
+  # DOCKER
   virtualisation.docker.enable = true;
   virtualisation.docker.daemon.settings = {
     data-root = "/data/docker";
@@ -63,19 +63,19 @@
     noCheck = true;
   };
 
-  #NODEJS
+  # NODEJS
   fileSystems."/usr/local/share/npm" = {
     device = "/data/node/share";
     options = [ "bind" "nofail" ];
   };
 
-  #PYTHON
+  # PYTHON
   fileSystems."/home/@USERNAME@/.local/lib/python3.13" = {
     device = "/data/python/lib";
     options = [ "bind" "nofail" ];
   };
 
-  #RUST
+  # RUST
   fileSystems."/home/@USERNAME@/.cargo" = {
     device = "/data/rust";
     options = [ "bind" "nofail" ];
@@ -101,7 +101,7 @@
   networking.search = [ "home.local" ];
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ 11434  8080  22 ];
+    allowedTCPPorts = [ 11434 8080 22 ];
   };
 
   security.rtkit.enable = true;
@@ -148,7 +148,7 @@
   programs.adb.enable = true;
 
   systemd.user.services.pixel-bridge = {
-    description = "Reverse Tethering para o Pixel 8 Pro";
+    description = "Reverse Tethering for Pixel 8 Pro";
     serviceConfig = {
       ExecStart = "${pkgs.gnirehtet}/bin/gnirehtet run";
       Restart = "always";

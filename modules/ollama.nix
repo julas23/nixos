@@ -1,11 +1,12 @@
 { config, lib, pkgs, ... }:
 
-lib.mkIf (config.install.system.ollama == "S") {
+lib.mkIf (config.install.system.ollama == "Y") {
+  # 1. OLLAMA SERVICE
   services.ollama = {
     enable = true;
     host = "0.0.0.0";
     port = 11434;
-    # Aceleração dinâmica baseada na GPU selecionada
+    # Dynamic acceleration based on selected GPU
     acceleration = if config.install.system.video == "amdgpu" then "rocm" 
                    else if config.install.system.video == "nvidia" then "cuda"
                    else null;
@@ -17,6 +18,7 @@ lib.mkIf (config.install.system.ollama == "S") {
     });
   };
 
+  # 2. OPEN WEBUI
   services.open-webui = {
     package = pkgs.open-webui;
     enable = true;
@@ -24,13 +26,14 @@ lib.mkIf (config.install.system.ollama == "S") {
       ANONYMIZED_TELEMETRY = "False";
       DO_NOT_TRACK = "True";
       SCARF_NO_ANALYTICS = "True";
-      # Ajuste automático de URL baseado no IP/Hostname
+      # Automatic URL adjustment based on IP/Hostname
       OLLAMA_API_BASE_URL = "http://localhost:11434/api";
       OLLAMA_BASE_URL = "http://localhost:11434";
     };
   };
   systemd.services.open-webui.serviceConfig.ExecStart = lib.mkForce "${pkgs.open-webui}/bin/open-webui serve --host \"0.0.0.0\" --port 8080";
 
+  # 3. STABLE DIFFUSION (Container)
   virtualisation.oci-containers.containers."stable-diffusion" = {
     image = "sd-webui:latest";
     ports = ["7860:7860"];
@@ -44,6 +47,7 @@ lib.mkIf (config.install.system.ollama == "S") {
     extraOptions = ["--gpus=all" "--shm-size=8g"];
   };
 
+  # 4. POSTGRESQL WITH PGVECTOR
   services.postgresql = {
     enable = true;
     package = pkgs.postgresql_16;
@@ -56,6 +60,7 @@ lib.mkIf (config.install.system.ollama == "S") {
     };
   };
 
+  # 5. MODEL DOWNLOAD SCRIPT
   systemd.services.download-models = {
     description = "Download initial AI models";
     after = [ "network.target" "ollama.service" ];
@@ -69,6 +74,7 @@ lib.mkIf (config.install.system.ollama == "S") {
     serviceConfig.Type = "oneshot";
   };
 
+  # 6. ADDITIONAL PACKAGES
   environment.systemPackages = with pkgs; [
     cudaPackages.cudatoolkit
     clinfo
