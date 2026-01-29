@@ -11,22 +11,22 @@ lib.mkIf (config.install.system.video == "amdgpu") {
 
   hardware.opengl = {
     enable = true;
-    driSupport = true;
-    driSupport32Bit = true;
-    extraPackages = with pkgs; [
-      rocmPackages.clr.icd
-      amdvlk
-      rocmPackages.llvm
-    ];
-    extraPackages32 = with pkgs; [
-      driversi686Linux.amdvlk
-    ];
+    #driSupport = true;
+    #driSupport32Bit = true;
+    #extraPackages = with pkgs; [
+      #rocmPackages.clr.icd
+      #amdvlk
+      #rocmPackages.llvm
+    #];
+    #extraPackages32 = with pkgs; [
+    #  driversi686Linux.amdvlk
+    #];
   };
   
-  hardware.rocm = {
-    enable = true;
-    package = pkgs.rocmPackages.clr;
-  };
+#  hardware.rocm = {
+#    enable = true;
+#    package = pkgs.rocmPackages.clr;
+#  };
   
   hardware.graphics.extraPackages = with pkgs; [
     vulkan-loader
@@ -35,7 +35,7 @@ lib.mkIf (config.install.system.video == "amdgpu") {
   ];
   
   environment.systemPackages = with pkgs; [
-    rocm-smi
+    #rocm-smi
     radeontop
     clinfo
   ];

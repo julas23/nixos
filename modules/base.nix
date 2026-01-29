@@ -119,10 +119,15 @@
   
   xdg.portal = {
     enable = true;
-    extraPortals = [ pkgs.xdg-desktop-portal-gtk ] 
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ]
       ++ lib.optional (config.install.system.desktop == "cosmic") pkgs.xdg-desktop-portal-cosmic
       ++ lib.optional (config.install.system.desktop == "hyprland") pkgs.xdg-desktop-portal-hyprland;
-    config.common.default = [ "gtk" ];
+
+    config.common.default = if config.install.system.desktop == "cosmic" 
+                            then [ "cosmic" ] 
+                            else [ "gtk" ];
+    
+    config.cosmic.default = [ "cosmic" "gtk" ];
   };
 
   services.pulseaudio.enable = false;
