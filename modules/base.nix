@@ -125,6 +125,7 @@
                             else [ "gtk" ];
     
     config.cosmic.default = [ "cosmic" "gtk" ];
+    config.cosmic-settings.default = [ "cosmic" ];
   };
 
   services.pulseaudio.enable = false;
