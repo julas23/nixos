@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-# NixOS Rebuild Script
-# This script handles system updates for the current configuration.
+# NixOS Rebuild Script with Placeholder Sync
+# This script handles system updates and ensures placeholders like @USERNAME@
+# are correctly replaced with the active system values.
 
 set -euo pipefail
 
@@ -27,7 +28,35 @@ fi
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$REPO_DIR"
 
-# Menu
+# --- SYNC PHASE ---
+log_info "Syncing placeholders..."
+
+# Detect the real user (even when running with sudo)
+REAL_USER=${SUDO_USER:-$(whoami)}
+if [ "$REAL_USER" == "root" ]; then
+    # If we are still root, try to find the first normal user in /home
+    REAL_USER=$(ls /home | head -n 1)
+fi
+
+log_info "Active user detected: $REAL_USER"
+
+# Files to sync
+FILES_TO_SYNC=(
+    "modules/user.nix"
+    "modules/base.nix"
+    "modules/cosmic.nix"
+)
+
+for FILE in "${FILES_TO_SYNC[@]}"; do
+    if [ -f "$FILE" ]; then
+        if grep -q "@USERNAME@" "$FILE"; then
+            log_info "Replacing placeholders in $FILE..."
+            sed -i "s/@USERNAME@/$REAL_USER/g" "$FILE"
+        fi
+    fi
+done
+
+# --- REBUILD PHASE ---
 echo "=================================================="
 echo "          NIXOS SYSTEM MANAGEMENT                 "
 echo "=================================================="
