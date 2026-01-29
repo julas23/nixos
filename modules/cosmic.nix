@@ -5,9 +5,20 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
   services.displayManager.cosmic-greeter.enable = true;
   services.desktopManager.cosmic.enable = true;
 
+  # XDG Portal Configuration for COSMIC
+  xdg.portal = {
+    enable = true;
+    extraPortals = with pkgs; [
+      xdg-desktop-portal-cosmic
+      xdg-desktop-portal-gtk
+    ];
+    config.common.default = [ "cosmic" ];
+    config.cosmic.default = [ "cosmic" "gtk" ];
+    config.cosmic-settings.default = [ "cosmic" ];
+  };
+
   # Essential Core Services for COSMIC
   services.dbus.enable = true;
-  security.polkit.enable = true;
   services.system76-scheduler.enable = true;
 
   # Session Variables
@@ -26,10 +37,10 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
     ];
   };
 
-  # AutoLogin (Disabled by default, but configured)
+  # AutoLogin
   services.displayManager.autoLogin = {
     enable = false;
-    user = "@USERNAME@"; # Updated to use the installer placeholder
+    user = "@USERNAME@";
   };
 
   # Graphics support
@@ -45,8 +56,23 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
     cosmic-session
     cosmic-term
     cosmic-store
-    cosmic-settings-daemon # Ensure the daemon is available
+    cosmic-settings-daemon
+    polkit_gnome # Authentication agent for Polkit
   ];
+
+  # Ensure the Polkit agent starts with the session
+  systemd.user.services.polkit-gnome-authentication-agent-1 = {
+    description = "polkit-gnome-authentication-agent-1";
+    wantedBy = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" ];
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1";
+      Restart = "on-failure";
+      RestartSec = 1;
+      TimeoutStopSec = 10;
+    };
+  };
 
   # D-Bus integration for COSMIC settings
   services.dbus.packages = [ pkgs.cosmic-settings-daemon ];

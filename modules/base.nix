@@ -102,6 +102,7 @@
   };
 
   security.rtkit.enable = true;
+  security.polkit.enable = true;
 
   services.xserver.enable = true;
   services.libinput.enable = true;
@@ -111,23 +112,10 @@
   services.gvfs.enable = true;
   services.udisks2.enable = true;
   services.blueman.enable = true;
+  services.upower.enable = true; # Critical for COSMIC Settings
   services.journald.extraConfig = '' Storage=persistent '';
   services.flatpak.enable = true;
   
-  xdg.portal = {
-    enable = true;
-    extraPortals = [ pkgs.xdg-desktop-portal-gtk ]
-      ++ lib.optional (config.install.system.desktop == "cosmic") pkgs.xdg-desktop-portal-cosmic
-      ++ lib.optional (config.install.system.desktop == "hyprland") pkgs.xdg-desktop-portal-hyprland;
-
-    config.common.default = if config.install.system.desktop == "cosmic" 
-                            then [ "cosmic" ] 
-                            else [ "gtk" ];
-    
-    config.cosmic.default = [ "cosmic" "gtk" ];
-    config.cosmic-settings.default = [ "cosmic" ];
-  };
-
   services.pulseaudio.enable = false;
   services.pipewire = {
     enable = true;
