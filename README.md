@@ -20,7 +20,7 @@ nmcli device wifi connect "NETWORK_NAME" password "YOUR_PASSWORD"
 Once connected, run the command below to start the automatic provisioning:
 
 ```bash
-curl -L https://raw.githubusercontent.com/julas23/nixos/main/install.sh -o install.sh && chmod +x install.sh && sudo ./install.sh
+sudo curl -L https://raw.githubusercontent.com/julas23/nixos/main/install.sh -o install.sh && chmod +x install.sh && sudo ./install.sh
 ```
 
 ## 🛠️ What does the script do?
