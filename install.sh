@@ -44,6 +44,9 @@ if [[ ! $CONFIRM_DISK =~ ^[Yy]$ ]]; then exit 1; fi
 
 # 2. Simple Partitioning (EFI + Root)
 log_step "Partitioning disk $DISK..."
+# Use wipefs to clean any existing signatures
+wipefs -a "$DISK"
+
 parted "$DISK" -- mklabel gpt
 parted "$DISK" -- mkpart ESP fat32 1MiB 512MiB
 parted "$DISK" -- set 1 esp on
@@ -58,11 +61,15 @@ else
     ROOT_PART="${DISK}2"
 fi
 
+# Wait for kernel to recognize partitions
+sleep 2
+
 log_step "Formatting partitions..."
 mkfs.vfat -F 32 -n BOOT "$BOOT_PART"
 mkfs.ext4 -L NIXOS "$ROOT_PART"
 
 log_step "Mounting partitions to /mnt..."
+# We use /dev/disk/by-label to ensure consistency
 mount /dev/disk/by-label/NIXOS /mnt
 mkdir -p /mnt/boot
 mount /dev/disk/by-label/BOOT /mnt/boot
@@ -74,6 +81,7 @@ git clone https://github.com/julas23/nixos.git /mnt/etc/nixos
 
 # 4. Hardware Configuration Generation
 log_step "Generating hardware-configuration.nix..."
+# nixos-generate-config will detect the mounted partitions and generate the correct UUIDs
 nixos-generate-config --root /mnt
 
 # 5. User Information Collection
@@ -135,11 +143,14 @@ sed -i "s/@FULLNAME@/$FULLNAME/g" "$USER_FILE"
 if grep -q "networking.hostName" "$CONFIG_FILE"; then
     sed -i "s/networking.hostName = \".*\";/networking.hostName = \"$HOSTNAME\";/" "$CONFIG_FILE"
 else
+    # Insert before the last closing brace if not found
     sed -i "/^}/i \  networking.hostName = \"$HOSTNAME\";" "$CONFIG_FILE"
 fi
 
 # 7. Installation
 log_step "Starting nixos-install..."
+# We explicitly do NOT touch /mnt/etc/nixos/configuration.nix file systems
+# nixos-install will use the generated hardware-configuration.nix (which has UUIDs)
 nixos-install --root /mnt
 
 log_success "NixOS installed successfully! You can now reboot."
