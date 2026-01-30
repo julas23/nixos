@@ -36,15 +36,18 @@
 
   system.activationScripts.createDataDirs = {
     text = ''
+      # Ensure /data exists and is owned by the user
       mkdir -p /data/docker /data/python /data/node /data/rust
       chown -R @USERNAME@:users /data || true
       chmod -R 755 /data || true
       
-      # Fix potential root ownership in user home
+      # Fix home directory and .local ownership to prevent root-lockout
+      # This is critical because of the Python/Rust bind-mounts
       if [ -d /home/@USERNAME@ ]; then
-        chown @USERNAME@:users /home/@USERNAME@
-        mkdir -p /home/@USERNAME@/.local
-        chown -R @USERNAME@:users /home/@USERNAME@/.local
+        echo "Ensuring ownership for /home/@USERNAME@..."
+        mkdir -p /home/@USERNAME@/.local/lib/python3.13
+        mkdir -p /home/@USERNAME@/.cargo
+        chown -R @USERNAME@:users /home/@USERNAME@
       fi
     '';
   };
