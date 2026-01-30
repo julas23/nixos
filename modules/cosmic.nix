@@ -22,14 +22,14 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
   services.system76-scheduler.enable = true;
   services.upower.enable = true;
   services.power-profiles-daemon.enable = true;
-  services.accounts-daemon.enable = true; # Required for user settings
+  services.accounts-daemon.enable = true;
 
   # Session Variables
   environment.sessionVariables = {
     COSMIC_DATA_CONTROL_ENABLED = "1";
     NIXOS_OZONE_WL = "1";
     PYTHONUSERBASE = "$HOME/.local";
-    # Fix for schemas and state directory permissions
+    # Ensure GSettings schemas are found
     XDG_DATA_DIRS = [ "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}" ];
   };
 
@@ -81,13 +81,12 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
     cosmic-notifications
     cosmic-ext-calculator
     cosmic-workspaces-epoch
-    #cosmic-ext-applet-weather
     cosmic-ext-applet-minimon
     cosmic-ext-applet-caffeine
     cosmic-ext-applet-privacy-indicator
     cosmic-ext-applet-external-monitor-brightness
     polkit_gnome
-    gsettings-desktop-schemas # Fix for "No schemas installed"
+    gsettings-desktop-schemas
 
     cosmic-settings
     cosmic-settings-daemon
@@ -95,6 +94,16 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
     xdg-desktop-portal-cosmic
   ];
 
+  # D-Bus integration for COSMIC settings
+  services.dbus.packages = [
+    pkgs.cosmic-settings-daemon
+    pkgs.cosmic-osd
+    pkgs.cosmic-notifications
+  ];
+
+  # Fix for D-Bus session and Polkit
+  security.polkit.enable = true;
+  
   # Ensure the Polkit agent starts with the session
   systemd.user.services.polkit-gnome-authentication-agent-1 = {
     description = "polkit-gnome-authentication-agent-1";
@@ -108,13 +117,6 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
       TimeoutStopSec = 10;
     };
   };
-
-  # D-Bus integration for COSMIC settings
-  services.dbus.packages = [
-    pkgs.cosmic-settings-daemon
-    pkgs.cosmic-osd
-    pkgs.cosmic-notifications
-  ];
 
   # Polkit rule to allow cosmic-settings-daemon to perform system actions
   security.polkit.extraConfig = ''
