@@ -11,7 +11,7 @@ in
   environment.systemPackages = with pkgs; [
 
     #### 1. INTERNET & BROWSERS
-    chromium transmission_4-gtk brave firefox librewolf
+    chromium transmission_4-gtk brave firefox librewolf ferdium
 
     #### 2. DEVELOPMENT & CLOUD
     vscode vscodium dbeaver-bin lens nodejs_24 npm-check sqlite
@@ -37,8 +37,8 @@ in
     wl-clipboard libinput-gestures mlocate p7zip wget psmisc procps
     bc nfs-utils lsyncd android-tools lsof mtr net-tools usbutils
     ethtool unzip unrar rar zip xdg-utils fuse3 rpi-imager solaar
-    tcpdump nmap dnsutils socat sysstat atop iotop powertop ncdu tldr
-    eww gnome-disk-utility
+    tcpdump nmap dnsutils socat sysstat atop iotop powertop ncdu
+    tldr eww gnome-disk-utility
     
     #### 7. ADDITIONAL TOOLS
     #pkgs.thunar
