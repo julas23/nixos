@@ -1,16 +1,15 @@
 { config, lib, pkgs, ... }:
 
 lib.mkIf (config.install.system.desktop == "cosmic") {
-  # 1. Display Manager & Desktop Environment
-  # Using the official COSMIC service which handles the heavy lifting
+  # 1. Core Desktop and Session Management
   services.displayManager.cosmic-greeter.enable = true;
   services.desktopManager.cosmic.enable = true;
 
-  # Ensure we have a session bus and it's properly initialized
+  # Ensure D-Bus is set up for user sessions
   services.dbus.enable = true;
   
-  # 2. XDG Portal Configuration
-  # This is vital for environment variables to be shared across apps
+  # 2. XDG Portal & Environment Providers
+  # This is critical for bootstrapping the environment variables into the session
   xdg.portal = {
     enable = true;
     extraPortals = with pkgs; [
@@ -18,34 +17,34 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
       xdg-desktop-portal-gtk
     ];
     config.common.default = [ "cosmic" "gtk" ];
-    wlr.enable = true; # Often needed for Wayland-based desktops
+    wlr.enable = true;
   };
 
-  # 3. Core System Services
+  # 3. Essential Core Services
   services.upower.enable = true;
   services.power-profiles-daemon.enable = true;
   services.accounts-daemon.enable = true;
   services.system76-scheduler.enable = true;
 
-  # 4. Environment & Session Variables
-  # Forcing variables that might not be picked up if the session init is weak
+  # 4. Global Environment Setup
+  # These help bootstrap the session if the initial login is weak
   environment.sessionVariables = {
     COSMIC_DATA_CONTROL_ENABLED = "1";
     NIXOS_OZONE_WL = "1";
-    # Ensure XDG_RUNTIME_DIR is respected
+    # Standard XDG paths to ensure consistency
     XDG_CACHE_HOME  = "$HOME/.cache";
     XDG_CONFIG_HOME = "$HOME/.config";
     XDG_DATA_HOME   = "$HOME/.local/share";
     XDG_STATE_HOME  = "$HOME/.local/state";
   };
 
-  # 5. Package Management
+  # 5. System Packages
   environment.cosmic.excludePackages = with pkgs; [
     cosmic-edit
   ];
 
   environment.systemPackages = with pkgs; [
-    # Core COSMIC components
+    # Core Components
     cosmic-icons
     cosmic-session
     cosmic-term
@@ -71,7 +70,7 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
     cosmic-ext-calculator
     cosmic-workspaces-epoch
     
-    # Critical Utilities
+    # Utilities and Hooks
     libcosmicAppHook
     cosmic-initial-setup
     cosmic-settings
@@ -81,9 +80,11 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
     # Auth and Schemas
     polkit_gnome
     gsettings-desktop-schemas
+    dbus-test-runner # Useful for debugging D-Bus
   ];
 
-  # 6. D-Bus Service Activation
+  # 6. D-Bus & Systemd User Integration
+  # Register packages that provide D-Bus services
   services.dbus.packages = [
     pkgs.cosmic-settings-daemon
     pkgs.cosmic-osd
@@ -108,7 +109,7 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
     };
   };
 
-  # Polkit rules for COSMIC
+  # Broad Polkit rules for COSMIC administration
   security.polkit.extraConfig = ''
     polkit.addRule(function(action, subject) {
       if ((action.id.indexOf("org.freedesktop.consolekit") == 0 ||
@@ -126,7 +127,11 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
     });
   '';
 
-  # 8. User Login Configuration
+  # 8. Session Bootstrapping Fix
+  # Ensure the systemd user manager is aware of the graphical session
+  services.xserver.displayManager.sessionPackages = [ pkgs.cosmic-session ];
+  
+  # 9. User Login Configuration
   services.displayManager.autoLogin = {
     enable = false;
     user = "@USERNAME@";
