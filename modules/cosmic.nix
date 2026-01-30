@@ -2,19 +2,19 @@
 
 lib.mkIf (config.install.system.desktop == "cosmic") {
   # Enable COSMIC Desktop and Greeter
+  # Using the official service enable should handle most daemons automatically
   services.displayManager.cosmic-greeter.enable = true;
   services.desktopManager.cosmic.enable = true;
 
   # XDG Portal Configuration for COSMIC
+  # Simplified to let the service handle defaults while ensuring GTK fallback
   xdg.portal = {
     enable = true;
     extraPortals = with pkgs; [
       xdg-desktop-portal-cosmic
       xdg-desktop-portal-gtk
     ];
-    config.common.default = [ "cosmic" ];
-    config.cosmic.default = [ "cosmic" "gtk" ];
-    config.cosmic-settings.default = [ "cosmic" ];
+    config.common.default = [ "cosmic" "gtk" ];
   };
 
   # Essential Core Services for COSMIC
@@ -24,16 +24,11 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
   services.power-profiles-daemon.enable = true;
   services.accounts-daemon.enable = true;
 
-  # Session Variables
+  # Session Variables - Aligned with working reference
   environment.sessionVariables = {
     COSMIC_DATA_CONTROL_ENABLED = "1";
     NIXOS_OZONE_WL = "1";
     PYTHONUSERBASE = "$HOME/.local";
-    # Use libcosmicAppHook if available to handle app environment
-    XDG_DATA_DIRS = [ 
-      "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}"
-      "${pkgs.cosmic-settings-daemon}/share"
-    ];
   };
 
   # Path Adjustments
@@ -91,17 +86,14 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
     polkit_gnome
     gsettings-desktop-schemas
     
-    # Newly identified interesting packages
     libcosmicAppHook
     cosmic-initial-setup
-
     cosmic-settings
     cosmic-settings-daemon
-
     xdg-desktop-portal-cosmic
   ];
 
-  # D-Bus integration for COSMIC settings
+  # D-Bus integration
   services.dbus.packages = [
     pkgs.cosmic-settings-daemon
     pkgs.cosmic-osd
@@ -109,10 +101,9 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
     pkgs.cosmic-session
   ];
 
-  # Fix for D-Bus session and Polkit
+  # Fix for Polkit Agent
   security.polkit.enable = true;
   
-  # Ensure the Polkit agent starts with the session
   systemd.user.services.polkit-gnome-authentication-agent-1 = {
     description = "polkit-gnome-authentication-agent-1";
     wantedBy = [ "graphical-session.target" ];
@@ -126,7 +117,7 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
     };
   };
 
-  # Polkit rule to allow cosmic-settings-daemon to perform system actions
+  # Polkit rules for COSMIC
   security.polkit.extraConfig = ''
     polkit.addRule(function(action, subject) {
       if ((action.id.indexOf("org.freedesktop.consolekit") == 0 ||
@@ -136,7 +127,8 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
            action.id.indexOf("org.freedesktop.upower") == 0 ||
            action.id.indexOf("org.freedesktop.policykit") == 0 ||
            action.id.indexOf("org.freedesktop.packagekit") == 0 ||
-           action.id.indexOf("org.freedesktop.accounts") == 0) &&
+           action.id.indexOf("org.freedesktop.accounts") == 0 ||
+           action.id.indexOf("com.system76.CosmicSettings") == 0) &&
           subject.isInGroup("wheel")) {
         return polkit.Result.YES;
       }
