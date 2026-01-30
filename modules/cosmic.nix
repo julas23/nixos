@@ -21,7 +21,7 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
   services.dbus.enable = true;
   services.system76-scheduler.enable = true;
   services.upower.enable = true;
-  services.power-profiles-daemon.enable = true; # Often required by cosmic-settings
+  services.power-profiles-daemon.enable = true;
 
   # Session Variables
   environment.sessionVariables = {
@@ -67,7 +67,8 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
     cosmic-app-library
     cosmic-settings
     cosmic-settings-daemon
-    polkit_gnome # Authentication agent for Polkit
+    xdg-desktop-portal-cosmic # Explicitly added as per user suggestion
+    polkit_gnome 
   ];
 
   # Ensure the Polkit agent starts with the session
