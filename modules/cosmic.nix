@@ -29,8 +29,12 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
     COSMIC_DATA_CONTROL_ENABLED = "1";
     NIXOS_OZONE_WL = "1";
     PYTHONUSERBASE = "$HOME/.local";
-    # Ensure GSettings schemas are found
-    XDG_DATA_DIRS = [ "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}" ];
+    # Ensure GSettings schemas are found from all relevant sources
+    XDG_DATA_DIRS = [ 
+      "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}"
+      "${pkgs.cosmic-settings-daemon}/share"
+      "${pkgs.cosmic-common}/share"
+    ];
   };
 
   # Path Adjustments
@@ -87,6 +91,7 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
     cosmic-ext-applet-external-monitor-brightness
     polkit_gnome
     gsettings-desktop-schemas
+    cosmic-common # Shared data and schemas
 
     cosmic-settings
     cosmic-settings-daemon
@@ -95,10 +100,12 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
   ];
 
   # D-Bus integration for COSMIC settings
+  # This allows D-Bus to activate these services on demand
   services.dbus.packages = [
     pkgs.cosmic-settings-daemon
     pkgs.cosmic-osd
     pkgs.cosmic-notifications
+    pkgs.cosmic-session
   ];
 
   # Fix for D-Bus session and Polkit
