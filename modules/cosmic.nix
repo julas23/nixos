@@ -20,6 +20,8 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
   # Essential Core Services for COSMIC
   services.dbus.enable = true;
   services.system76-scheduler.enable = true;
+  services.upower.enable = true;
+  services.power-profiles-daemon.enable = true; # Often required by cosmic-settings
 
   # Session Variables
   environment.sessionVariables = {
@@ -56,6 +58,14 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
     cosmic-session
     cosmic-term
     cosmic-store
+    cosmic-bg
+    cosmic-osd
+    cosmic-panel
+    cosmic-launcher
+    cosmic-notifications
+    cosmic-applets
+    cosmic-app-library
+    cosmic-settings
     cosmic-settings-daemon
     polkit_gnome # Authentication agent for Polkit
   ];
@@ -75,7 +85,11 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
   };
 
   # D-Bus integration for COSMIC settings
-  services.dbus.packages = [ pkgs.cosmic-settings-daemon ];
+  services.dbus.packages = [ 
+    pkgs.cosmic-settings-daemon 
+    pkgs.cosmic-osd
+    pkgs.cosmic-notifications
+  ];
 
   # Polkit rule to allow cosmic-settings-daemon to perform system actions
   security.polkit.extraConfig = ''
@@ -84,7 +98,9 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
            action.id.indexOf("org.freedesktop.hostname") == 0 ||
            action.id.indexOf("org.freedesktop.login1") == 0 ||
            action.id.indexOf("org.freedesktop.NetworkManager") == 0 ||
-           action.id.indexOf("org.freedesktop.upower") == 0) &&
+           action.id.indexOf("org.freedesktop.upower") == 0 ||
+           action.id.indexOf("org.freedesktop.policykit") == 0 ||
+           action.id.indexOf("org.freedesktop.packagekit") == 0) &&
           subject.isInGroup("wheel")) {
         return polkit.Result.YES;
       }
