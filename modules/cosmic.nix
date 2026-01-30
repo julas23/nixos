@@ -47,7 +47,7 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
 
   # Graphics support
   hardware.graphics.enable = true;
-  
+
   # COSMIC Packages
   environment.cosmic.excludePackages = with pkgs; [
     cosmic-edit
@@ -60,15 +60,36 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
     cosmic-store
     cosmic-bg
     cosmic-osd
+    cosmic-idle
+    cosmic-comp
+    cosmic-randr
     cosmic-panel
-    cosmic-launcher
-    cosmic-notifications
+    cosmic-files
+    cosmic-reader
+    cosmic-player
+    cosmic-ext-ctl
     cosmic-applets
-    cosmic-app-library
+    cosmic-launcher
+    cosmic-protocols
+    cosmic-wallpapers
+    cosmic-screenshot
+    cosmic-ext-tweaks
+    cosmic-applibrary
+    cosmic-notifications
+    cosmic-ext-calculator
+    cosmic-workspaces-epoch
+    cosmic-applets
+    #cosmic-ext-applet-weather
+    cosmic-ext-applet-minimon
+    cosmic-ext-applet-caffeine
+    cosmic-ext-applet-privacy-indicator
+    cosmic-ext-applet-external-monitor-brightness
+    polkit_gnome
+
     cosmic-settings
     cosmic-settings-daemon
-    xdg-desktop-portal-cosmic # Explicitly added as per user suggestion
-    polkit_gnome 
+
+    xdg-desktop-portal-cosmic
   ];
 
   # Ensure the Polkit agent starts with the session
@@ -86,8 +107,8 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
   };
 
   # D-Bus integration for COSMIC settings
-  services.dbus.packages = [ 
-    pkgs.cosmic-settings-daemon 
+  services.dbus.packages = [
+    pkgs.cosmic-settings-daemon
     pkgs.cosmic-osd
     pkgs.cosmic-notifications
   ];
