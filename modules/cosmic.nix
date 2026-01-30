@@ -22,12 +22,15 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
   services.system76-scheduler.enable = true;
   services.upower.enable = true;
   services.power-profiles-daemon.enable = true;
+  services.accounts-daemon.enable = true; # Required for user settings
 
   # Session Variables
   environment.sessionVariables = {
     COSMIC_DATA_CONTROL_ENABLED = "1";
     NIXOS_OZONE_WL = "1";
     PYTHONUSERBASE = "$HOME/.local";
+    # Fix for schemas and state directory permissions
+    XDG_DATA_DIRS = [ "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}" ];
   };
 
   # Path Adjustments
@@ -78,13 +81,13 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
     cosmic-notifications
     cosmic-ext-calculator
     cosmic-workspaces-epoch
-    cosmic-applets
     #cosmic-ext-applet-weather
     cosmic-ext-applet-minimon
     cosmic-ext-applet-caffeine
     cosmic-ext-applet-privacy-indicator
     cosmic-ext-applet-external-monitor-brightness
     polkit_gnome
+    gsettings-desktop-schemas # Fix for "No schemas installed"
 
     cosmic-settings
     cosmic-settings-daemon
@@ -122,7 +125,8 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
            action.id.indexOf("org.freedesktop.NetworkManager") == 0 ||
            action.id.indexOf("org.freedesktop.upower") == 0 ||
            action.id.indexOf("org.freedesktop.policykit") == 0 ||
-           action.id.indexOf("org.freedesktop.packagekit") == 0) &&
+           action.id.indexOf("org.freedesktop.packagekit") == 0 ||
+           action.id.indexOf("org.freedesktop.accounts") == 0) &&
           subject.isInGroup("wheel")) {
         return polkit.Result.YES;
       }
