@@ -16,7 +16,7 @@ in
     #### 2. DEVELOPMENT & CLOUD
     vscode vscodium dbeaver-bin lens nodejs_24 npm-check sqlite
     terraform helm docker-compose rustup cmake gcc gnumake ansible
-    scientific-python kubectl
+    scientific-python kubectl drawio
 
     #### 3. OFFICE & DESIGN
     bitwarden-desktop sublime4 libreoffice simple-scan blender gimp
