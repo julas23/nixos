@@ -39,6 +39,13 @@
       mkdir -p /data/docker /data/python /data/node /data/rust
       chown -R @USERNAME@:users /data || true
       chmod -R 755 /data || true
+      
+      # Fix potential root ownership in user home
+      if [ -d /home/@USERNAME@ ]; then
+        chown @USERNAME@:users /home/@USERNAME@
+        mkdir -p /home/@USERNAME@/.local
+        chown -R @USERNAME@:users /home/@USERNAME@/.local
+      fi
     '';
   };
 
@@ -135,6 +142,11 @@
   };
 
   services.printing.enable = true;
+
+  # Force D-Bus environment update on session start
+  services.xserver.displayManager.sessionCommands = ''
+    ${pkgs.dbus}/bin/dbus-update-activation-environment --all
+  '';
 
   programs.adb.enable = true;
 
