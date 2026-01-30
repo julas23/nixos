@@ -11,12 +11,12 @@ in
   environment.systemPackages = with pkgs; [
 
     #### 1. INTERNET & BROWSERS
-    chromium transmission_4-gtk brave firefox
+    chromium transmission_4-gtk brave firefox librewolf
 
     #### 2. DEVELOPMENT & CLOUD
     vscode vscodium dbeaver-bin lens nodejs_24 npm-check sqlite
     terraform helm docker-compose rustup cmake gcc gnumake ansible
-    scientific-python
+    scientific-python kubectl
 
     #### 3. OFFICE & DESIGN
     bitwarden-desktop sublime4 libreoffice simple-scan blender gimp
@@ -43,6 +43,6 @@ in
     #### 7. ADDITIONAL TOOLS
     #pkgs.thunar
     #pkgs.thunar-archive-plugin
-    cosmic-edit
+    cosmic-edit waydroid 
   ];
 }
