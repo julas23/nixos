@@ -38,7 +38,7 @@ in
     bc nfs-utils lsyncd android-tools lsof mtr net-tools usbutils
     ethtool unzip unrar rar zip xdg-utils fuse3 rpi-imager solaar
     tcpdump nmap dnsutils socat sysstat atop iotop powertop ncdu
-    tldr eww gnome-disk-utility
+    tldr eww gnome-disk-utility appimage-run flatpak
     
     #### 7. ADDITIONAL TOOLS
     #pkgs.thunar
