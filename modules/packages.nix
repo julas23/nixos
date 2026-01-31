@@ -26,7 +26,7 @@ in
     #### 4. MULTIMEDIA
     mpv mpvpaper ardour audacity hydrogen muse musescore rhythmbox 
     obs-studio vlc clementine picard strawberry pwvucontrol helvum
-    rosegarden mpv cava
+    rosegarden mpv cava feh
 
     #### 5. SYSTEM & TERMINAL
     git jq mc thunderbird pciutils vulkan-tools btop htop eza inxi
