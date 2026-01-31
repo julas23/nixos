@@ -58,6 +58,8 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.initrd.supportedFilesystems = [ "lvm2" ];
+  boot.initrd.availableKernelModules = [ "dm-raid" "dm-mirror" ];
+  boot.kernelModules = [ "dm-raid" "dm-mirror" ];
   services.lvm.enable = true;
 
 # DOCKER
