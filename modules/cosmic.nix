@@ -64,6 +64,7 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
     cosmic-panel
     cosmic-files
     cosmic-reader
+    #cosmic-viewer   #missing in channel?
     cosmic-player
     cosmic-ext-ctl
     cosmic-applets
@@ -76,6 +77,7 @@ lib.mkIf (config.install.system.desktop == "cosmic") {
     cosmic-notifications
     cosmic-ext-calculator
     cosmic-workspaces-epoch
+    #cosmic-ext-applet-image-viewer    #missing in channel?
     
     # Utilities and Hooks
     libcosmicAppHook
