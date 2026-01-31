@@ -57,10 +57,13 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelPackages = pkgs.linuxPackages_latest;
-  boot.initrd.supportedFilesystems = [ "lvm2" ];
-  boot.initrd.availableKernelModules = [ "dm-raid" "dm-mirror" ];
-  boot.kernelModules = [ "dm-raid" "dm-mirror" ];
   services.lvm.enable = true;
+  boot.initrd = {
+    supportedFilesystems = [ "lvm2" ];
+    kernelModules = [ "dm-raid" "dm-mirror" ];
+    services.lvm.enable = true;
+  };
+  boot.kernelModules = [ "dm-raid" "dm-mirror" ];
 
 # DOCKER
   virtualisation.docker.enable = true;
