@@ -206,7 +206,7 @@
   ];
 
   systemd.user.services.pixel-bridge = {
-    description = "Reverse Tethering for Pixel 8 Pro";
+    description = "Reverse Tethering for Android";
     serviceConfig = {
       ExecStart = "${pkgs.gnirehtet}/bin/gnirehtet run";
       Restart = "always";
