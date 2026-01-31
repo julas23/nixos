@@ -57,9 +57,10 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelPackages = pkgs.linuxPackages_latest;
-  boot.lvm.enable = true;
+  boot.initrd.scanDevices = true;
+  services.lvm.enable = true;
 
-  # DOCKER
+# DOCKER
   virtualisation.docker.enable = true;
   virtualisation.docker.daemon.settings = {
     data-root = "/data/docker";
