@@ -57,7 +57,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelPackages = pkgs.linuxPackages_latest;
-  boot.initrd.scanDevices = true;
+  boot.initrd.supportedFilesystems = [ "lvm2" ];
   services.lvm.enable = true;
 
 # DOCKER
