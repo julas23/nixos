@@ -8,11 +8,13 @@ CYAN='\033[0;36m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
+BOLD='\033[1m'
 NC='\033[0m'
 
 log_step() { echo -e "${CYAN}[STEP]${NC} $*"; }
 log_success() { echo -e "${GREEN}[SUCCESS]${NC} $*"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $*"; }
+log_warning() { echo -e "${YELLOW}[WARNING]${NC} $*"; }
 
 clear
 echo "=================================================="
@@ -27,20 +29,80 @@ if ! ping -c 1 google.com &> /dev/null; then
 fi
 log_success "Internet OK!"
 
-# 1. Disk Selection
-log_step "Detecting disks..."
-lsblk -p -d -n -o NAME,SIZE,MODEL
+# 1. Disk Selection with Interactive Menu
+log_step "Detecting available disks..."
 echo ""
-read -p "Enter the disk path for installation (e.g., /dev/sda or /dev/nvme0n1): " DISK
 
-if [ ! -b "$DISK" ]; then
-    log_error "Disk not found!"
+# Get list of disks (excluding loop and rom devices)
+mapfile -t DISK_NAMES < <(lsblk -d -n -o NAME -e 7,11)
+mapfile -t DISK_SIZES < <(lsblk -d -n -o SIZE -e 7,11)
+mapfile -t DISK_TYPES < <(lsblk -d -n -o TYPE -e 7,11)
+mapfile -t DISK_MODELS < <(lsblk -d -n -o MODEL -e 7,11)
+
+if [ ${#DISK_NAMES[@]} -eq 0 ]; then
+    log_error "No disks found!"
     exit 1
 fi
 
-echo -e "${YELLOW}WARNING: All data on $DISK will be erased!${NC}"
-read -p "Are you sure? (y/n): " CONFIRM_DISK
-if [[ ! $CONFIRM_DISK =~ ^[Yy]$ ]]; then exit 1; fi
+# Display disk information in a table
+echo -e "${BOLD}Available Disks:${NC}"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+printf "%-4s %-15s %-10s %-8s %-30s\n" "No." "Device" "Size" "Type" "Model"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+for i in "${!DISK_NAMES[@]}"; do
+    DISK_PATH="/dev/${DISK_NAMES[$i]}"
+    DISK_SIZE="${DISK_SIZES[$i]}"
+    DISK_TYPE="${DISK_TYPES[$i]}"
+    DISK_MODEL="${DISK_MODELS[$i]:-N/A}"
+    
+    printf "%-4s %-15s %-10s %-8s %-30s\n" "$((i+1))" "$DISK_PATH" "$DISK_SIZE" "$DISK_TYPE" "$DISK_MODEL"
+done
+
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+# Interactive disk selection
+while true; do
+    read -p "Select disk number for installation (1-${#DISK_NAMES[@]}): " DISK_NUM
+    
+    # Validate input
+    if [[ "$DISK_NUM" =~ ^[0-9]+$ ]] && [ "$DISK_NUM" -ge 1 ] && [ "$DISK_NUM" -le "${#DISK_NAMES[@]}" ]; then
+        DISK_INDEX=$((DISK_NUM - 1))
+        DISK="/dev/${DISK_NAMES[$DISK_INDEX]}"
+        DISK_SIZE="${DISK_SIZES[$DISK_INDEX]}"
+        DISK_MODEL="${DISK_MODELS[$DISK_INDEX]:-N/A}"
+        break
+    else
+        log_error "Invalid selection! Please enter a number between 1 and ${#DISK_NAMES[@]}."
+    fi
+done
+
+# Confirm disk selection
+echo ""
+echo -e "${BOLD}Selected Disk:${NC}"
+echo "  Device: ${CYAN}$DISK${NC}"
+echo "  Size:   ${CYAN}$DISK_SIZE${NC}"
+echo "  Model:  ${CYAN}$DISK_MODEL${NC}"
+echo ""
+log_warning "ALL DATA ON THIS DISK WILL BE PERMANENTLY ERASED!"
+echo ""
+
+while true; do
+    read -p "Are you absolutely sure you want to continue? (yes/no): " CONFIRM_DISK
+    case "$CONFIRM_DISK" in
+        yes|YES)
+            break
+            ;;
+        no|NO)
+            log_error "Installation cancelled by user."
+            exit 1
+            ;;
+        *)
+            log_error "Please type 'yes' or 'no'."
+            ;;
+    esac
+done
 
 # 2. Simple Partitioning (EFI + Root)
 log_step "Partitioning disk $DISK..."
@@ -53,7 +115,7 @@ parted "$DISK" -- set 1 esp on
 parted "$DISK" -- mkpart primary ext4 512MiB 100%
 
 # Define partition names (handling nvme)
-if [[ $DISK == *"nvme"* ]]; then
+if [[ $DISK == *"nvme"* ]] || [[ $DISK == *"mmcblk"* ]]; then
     BOOT_PART="${DISK}p1"
     ROOT_PART="${DISK}p2"
 else
@@ -248,6 +310,7 @@ echo ""
 echo -e "${GREEN}╔════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║          SYSTEM CONFIGURATION SUMMARY          ║${NC}"
 echo -e "${GREEN}╠════════════════════════════════════════════════╣${NC}"
+echo -e "${GREEN}║${NC} Disk:        ${CYAN}$DISK ($DISK_SIZE)${NC}"
 echo -e "${GREEN}║${NC} Hostname:    ${CYAN}$HOSTNAME${NC}"
 echo -e "${GREEN}║${NC} Username:    ${CYAN}$USERNAME${NC}"
 echo -e "${GREEN}║${NC} Timezone:    ${CYAN}$TIMEZONE${NC}"
