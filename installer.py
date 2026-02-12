@@ -494,10 +494,16 @@ def draw_user_phase(stdscr, start_row: int, config: InstallConfig, selected_line
                 label = line[:bracket_start]
                 safe_addstr(stdscr, row + idx, 4, label, curses.A_NORMAL)
                 
-                # Draw bracket content (with highlight if selected)
-                bracket_content = line[bracket_start:bracket_end]
+                # Draw opening bracket '['
+                safe_addstr(stdscr, row + idx, 4 + len(label), '[', curses.A_NORMAL)
+                
+                # Draw content inside brackets (with highlight if selected)
+                content_inside = line[bracket_start+1:bracket_end-1]  # Exclude [ and ]
                 attr = curses.A_REVERSE if idx == selected_line else curses.A_NORMAL
-                safe_addstr(stdscr, row + idx, 4 + len(label), bracket_content, attr)
+                safe_addstr(stdscr, row + idx, 4 + len(label) + 1, content_inside, attr)
+                
+                # Draw closing bracket ']'
+                safe_addstr(stdscr, row + idx, 4 + len(label) + 1 + len(content_inside), ']', curses.A_NORMAL)
                 
                 # Draw suffix (after bracket, like <Space>, <Enter>)
                 suffix = line[bracket_end:]
@@ -972,15 +978,17 @@ class MultiPhaseInstaller:
         field_width = 30
         
         # Determine which row to edit based on layout
+        # Must match draw_user_phase: start_row + 2 (title) + selected_line
         layout_mode = get_layout_mode(height)
         if layout_mode == 'compact':
-            base_row = 6  # 4 (header) + 2 (tabs)
+            start_row = 4  # compact header
         elif layout_mode == 'normal':
-            base_row = 9  # 7 (header) + 2 (tabs)
+            start_row = 7  # normal header
         else:  # expanded
-            base_row = 13  # 11 (header) + 2 (tabs)
+            start_row = 11  # expanded header
         
-        edit_row = base_row + self.selected_line
+        # Add 2 for tabs, then 2 more for "USER CONFIGURATION" title and blank line
+        edit_row = start_row + 2 + 2 + self.selected_line
         
         if self.selected_line == 0:  # Username
             curses.echo()
