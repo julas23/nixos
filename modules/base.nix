@@ -61,6 +61,14 @@
     kernelModules = [ "dm-raid" "dm-mirror" "raid1" "dm-mod" ];
     supportedFilesystems = [ "ext4" "lvm2" ];
   };
+  boot.kernel.sysctl = {
+    "vm.nr_hugepages" = 1024;
+    "vm.hugetlb_shm_group" = 0;
+    "vm.swappiness" = 10;
+  };
+  systemd.tmpfiles.rules = [
+    "w /sys/kernel/mm/transparent_hugepage/enabled - - - - always"
+  ];
 
 # DOCKER
   virtualisation.docker.enable = true;
