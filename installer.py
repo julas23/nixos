@@ -508,7 +508,8 @@ def draw_user_phase(stdscr, start_row: int, config: InstallConfig, selected_line
                 # Draw suffix (after bracket, like <Space>, <Enter>)
                 suffix = line[bracket_end:]
                 if suffix:
-                    safe_addstr(stdscr, row + idx, 4 + len(label) + len(bracket_content), suffix, curses.A_DIM)
+                    # Position after: label + '[' + content + ']'
+                    safe_addstr(stdscr, row + idx, 4 + len(label) + 1 + len(content_inside) + 1, suffix, curses.A_DIM)
             else:
                 # Fallback: draw entire line
                 attr = curses.A_REVERSE if idx == selected_line else curses.A_NORMAL
