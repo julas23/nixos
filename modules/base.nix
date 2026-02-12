@@ -26,7 +26,6 @@
 
   install.system = {
     video = "amdgpu";
-    host = "hp";
     graphic = "wayland";
     desktop = "cosmic";
     user = "user";
@@ -36,13 +35,10 @@
 
   system.activationScripts.createDataDirs = {
     text = ''
-      # Ensure /data exists and is owned by the user
       mkdir -p /data/docker /data/python /data/node /data/rust
       chown -R @USERNAME@:users /data || true
       chmod -R 755 /data || true
       
-      # Fix home directory and .local ownership to prevent root-lockout
-      # This is critical because of the Python/Rust bind-mounts
       if [ -d /home/@USERNAME@ ]; then
         echo "Ensuring ownership for /home/@USERNAME@..."
         mkdir -p /home/@USERNAME@/.local/lib/python3.13
@@ -52,7 +48,7 @@
     '';
   };
 
-  nixpkgs.config.permittedInsecurePackages = [ "openssl-1.1.1w" "wavebox-10.137.11-2" ];
+  nixpkgs.config.permittedInsecurePackages = [ "openssl-1.1.1w" ];
 
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -115,12 +111,14 @@
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [ 11434 8080 22 ];
+    allowedUDPPorts = [ 53 67 68 ];
   };
 
   security.rtkit.enable = true;
   security.polkit.enable = true;
 
   services.xserver.enable = true;
+  services.xserver.videoDrivers = [ "displaylink" "modesetting" ];
   services.libinput.enable = true;
   services.openssh.enable = true;
   services.fstrim.enable = true;
