@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 NixOS Multi-Phase TUI Installer
-Calamares-style text mode installer with tab navigation
+Responsive design with framebuffer console support
 Architecture: Dataclasses + JSON for configuration persistence
 """
 
@@ -9,6 +9,7 @@ import curses
 import subprocess
 import re
 import json
+import time
 from dataclasses import dataclass, field, asdict
 from typing import List, Optional, Tuple
 from pathlib import Path
@@ -20,7 +21,7 @@ from pathlib import Path
 @dataclass
 class NetworkConfig:
     """Network configuration"""
-    status: str = "checking"  # checking, online, offline
+    status: str = "checking"
     interface: Optional[str] = None
     ip: Optional[str] = None
     gateway: Optional[str] = None
@@ -59,7 +60,7 @@ class DiskConfig:
 @dataclass
 class EnvironmentConfig:
     """Graphics environment configuration"""
-    graphics: str = "wayland"  # wayland, xorg, text
+    graphics: str = "wayland"
     desktop: str = "cosmic"
     description: str = ""
     validated: bool = False
@@ -150,6 +151,19 @@ class InstallConfig:
         )
 
 # ============================================================================
+# LAYOUT MODES
+# ============================================================================
+
+def get_layout_mode(height: int) -> str:
+    """Determine layout mode based on terminal height"""
+    if height < 30:
+        return 'compact'
+    elif height < 45:
+        return 'normal'
+    else:
+        return 'expanded'
+
+# ============================================================================
 # SYSTEM INFORMATION
 # ============================================================================
 
@@ -219,86 +233,151 @@ def check_network_status() -> str:
         return "offline"
 
 # ============================================================================
-# DRAWING FUNCTIONS
+# DRAWING FUNCTIONS - RESPONSIVE
 # ============================================================================
 
-def draw_header(stdscr, system_info: dict):
-    """Draw system information header"""
+def draw_header(stdscr, system_info: dict, mode: str):
+    """Draw system information header (responsive)"""
     height, width = stdscr.getmaxyx()
     
     # Top border
     stdscr.addstr(0, 0, "╔" + "═" * (width - 2) + "╗")
     
-    # Title
-    title = "NIXOS MULTI-PHASE INSTALLER"
-    stdscr.addstr(1, (width - len(title)) // 2, title, curses.A_BOLD)
+    if mode == 'compact':
+        # Compact: 1 line of info
+        title = "NixOS Installer"
+        stdscr.addstr(1, 2, title, curses.A_BOLD)
+        
+        # Single line with essential info
+        info_line = f"CPU: {system_info.get('cpu', 'Unknown')[:20]} | {system_info.get('cores', '?')}c | {system_info.get('memory', '?')} | {system_info.get('ip', 'No net')}"
+        stdscr.addstr(2, 2, info_line[:width-4])
+        
+        stdscr.addstr(3, 0, "╠" + "═" * (width - 2) + "╣")
+        return 4
     
-    # System info lines
-    info_lines = [
-        f"CPU: {system_info.get('cpu', 'Unknown')} | Cores: {system_info.get('cores', '?')} | RAM: {system_info.get('memory', '?')}",
-        f"GPU: {system_info.get('gpu', 'Unknown')}",
-        f"Disks: {system_info.get('disks', 'Unknown')}",
-        f"Network: {system_info.get('ip', 'Unknown')}"
-    ]
+    elif mode == 'normal':
+        # Normal: Current layout (7 lines)
+        title = "NIXOS MULTI-PHASE INSTALLER"
+        stdscr.addstr(1, (width - len(title)) // 2, title, curses.A_BOLD)
+        
+        info_lines = [
+            f"CPU: {system_info.get('cpu', 'Unknown')} | Cores: {system_info.get('cores', '?')} | RAM: {system_info.get('memory', '?')}",
+            f"GPU: {system_info.get('gpu', 'Unknown')}",
+            f"Disks: {system_info.get('disks', 'Unknown')}",
+            f"Network: {system_info.get('ip', 'Unknown')}"
+        ]
+        
+        for i, line in enumerate(info_lines):
+            stdscr.addstr(2 + i, 2, line[:width-4])
+        
+        stdscr.addstr(6, 0, "╠" + "═" * (width - 2) + "╣")
+        return 7
     
-    for i, line in enumerate(info_lines):
-        stdscr.addstr(2 + i, 2, line[:width-4])
-    
-    # Separator
-    stdscr.addstr(6, 0, "╠" + "═" * (width - 2) + "╣")
-    
-    return 7  # Return starting row for content
+    else:  # expanded
+        # Expanded: More detailed info (10 lines)
+        title = "NIXOS MULTI-PHASE INSTALLER"
+        stdscr.addstr(1, (width - len(title)) // 2, title, curses.A_BOLD)
+        
+        subtitle = "Responsive Design with Framebuffer Support"
+        stdscr.addstr(2, (width - len(subtitle)) // 2, subtitle, curses.A_DIM)
+        
+        info_lines = [
+            "",
+            f"CPU:     {system_info.get('cpu', 'Unknown')}",
+            f"Cores:   {system_info.get('cores', '?')} | RAM: {system_info.get('memory', '?')}",
+            f"GPU:     {system_info.get('gpu', 'Unknown')}",
+            f"Disks:   {system_info.get('disks', 'Unknown')}",
+            f"Network: {system_info.get('ip', 'Unknown')}",
+            ""
+        ]
+        
+        for i, line in enumerate(info_lines):
+            if line:
+                stdscr.addstr(3 + i, 2, line[:width-4])
+        
+        stdscr.addstr(10, 0, "╠" + "═" * (width - 2) + "╣")
+        return 11
 
-def draw_tabs(stdscr, row: int, phases: List[str], current_idx: int, config: InstallConfig):
-    """Draw phase tabs"""
+def draw_tabs(stdscr, row: int, phases: List[str], current_idx: int, config: InstallConfig, mode: str):
+    """Draw phase tabs (responsive)"""
     height, width = stdscr.getmaxyx()
     
-    # Tab names
-    tab_width = width // len(phases)
-    col = 0
+    if mode == 'compact':
+        # Compact: Abbreviated tab names
+        short_phases = ["Net", "User", "Disk", "Env", "Desk", "Rev"]
+        tab_width = width // len(short_phases)
+        col = 0
+        
+        for idx, phase in enumerate(short_phases):
+            validated = False
+            if idx == 0:
+                validated = config.network.validated
+            elif idx == 1:
+                validated = config.user.validated
+            elif idx == 2:
+                validated = len(config.disks) > 0 and all(d.validated for d in config.disks)
+            elif idx == 3:
+                validated = config.environment.validated
+            elif idx == 4:
+                validated = config.desktop.validated
+            elif idx == 5:
+                validated = config.is_complete()
+            
+            status = "✓" if validated else "○"
+            tab_text = f"{status}{phase}"
+            
+            attr = curses.A_REVERSE | curses.A_BOLD if idx == current_idx else curses.A_NORMAL
+            
+            if col + len(tab_text) + 1 < width:
+                stdscr.addstr(row, col, f" {tab_text}", attr)
+            col += tab_width
     
-    for idx, phase in enumerate(phases):
-        # Determine validation status
-        validated = False
-        if idx == 0:
-            validated = config.network.validated
-        elif idx == 1:
-            validated = config.user.validated
-        elif idx == 2:
-            validated = len(config.disks) > 0 and all(d.validated for d in config.disks)
-        elif idx == 3:
-            validated = config.environment.validated
-        elif idx == 4:
-            validated = config.desktop.validated
-        elif idx == 5:
-            validated = config.is_complete()
+    else:
+        # Normal/Expanded: Full tab names
+        tab_width = width // len(phases)
+        col = 0
         
-        # Status indicator
-        status = "✓" if validated else "○"
-        tab_text = f" {status} {phase} "
-        
-        # Highlight current tab
-        attr = curses.A_REVERSE | curses.A_BOLD if idx == current_idx else curses.A_NORMAL
-        
-        if col + len(tab_text) < width:
-            stdscr.addstr(row, col, tab_text, attr)
-        col += tab_width
+        for idx, phase in enumerate(phases):
+            validated = False
+            if idx == 0:
+                validated = config.network.validated
+            elif idx == 1:
+                validated = config.user.validated
+            elif idx == 2:
+                validated = len(config.disks) > 0 and all(d.validated for d in config.disks)
+            elif idx == 3:
+                validated = config.environment.validated
+            elif idx == 4:
+                validated = config.desktop.validated
+            elif idx == 5:
+                validated = config.is_complete()
+            
+            status = "✓" if validated else "○"
+            tab_text = f" {status} {phase} "
+            
+            attr = curses.A_REVERSE | curses.A_BOLD if idx == current_idx else curses.A_NORMAL
+            
+            if col + len(tab_text) < width:
+                stdscr.addstr(row, col, tab_text, attr)
+            col += tab_width
     
-    # Separator
     stdscr.addstr(row + 1, 0, "╠" + "═" * (width - 2) + "╣")
-    
     return row + 2
 
-def draw_footer(stdscr, can_go_back: bool, can_go_next: bool, can_finish: bool):
-    """Draw footer with action buttons"""
+def draw_footer(stdscr, can_go_back: bool, can_go_next: bool, can_finish: bool, mode: str):
+    """Draw footer with action buttons (responsive)"""
     height, width = stdscr.getmaxyx()
     
-    # Separator
     stdscr.addstr(height - 4, 0, "╠" + "═" * (width - 2) + "╣")
     
-    # Help text
-    help_text = "Ctrl+←/→: Switch tabs | Tab/Enter: Navigate | Esc: Abort"
-    stdscr.addstr(height - 3, 2, help_text[:width-4], curses.A_DIM)
+    if mode == 'compact':
+        # Compact: Shorter help text
+        help_text = "Ctrl+←/→:Tabs | ↑↓:Nav | Enter:Edit | Esc:Abort"
+        stdscr.addstr(height - 3, 2, help_text[:width-4], curses.A_DIM)
+    else:
+        # Normal/Expanded: Full help text
+        help_text = "Ctrl+←/→: Switch tabs | ↑↓: Navigate | Enter: Edit | Esc: Abort"
+        stdscr.addstr(height - 3, 2, help_text[:width-4], curses.A_DIM)
     
     # Buttons
     buttons = []
@@ -311,31 +390,30 @@ def draw_footer(stdscr, can_go_back: bool, can_go_next: bool, can_finish: bool):
         buttons.append(("[F3] Next", curses.A_BOLD))
     
     if can_finish:
-        buttons.append(("[F4] Finish", curses.A_BOLD | curses.COLOR_GREEN if curses.has_colors() else curses.A_BOLD))
+        buttons.append(("[F4] Finish", curses.A_BOLD))
     
     button_text = "  ".join([b[0] for b in buttons])
     start_col = (width - len(button_text)) // 2
     
     col = start_col
     for text, attr in buttons:
-        stdscr.addstr(height - 2, col, text, attr)
-        col += len(text) + 2
+        if col + len(text) < width - 2:
+            stdscr.addstr(height - 2, col, text, attr)
+            col += len(text) + 2
     
-    # Bottom border
     stdscr.addstr(height - 1, 0, "╚" + "═" * (width - 2) + "╝")
 
 # ============================================================================
-# PHASE IMPLEMENTATIONS
+# PHASE IMPLEMENTATIONS (Same as before, but with scroll support)
 # ============================================================================
 
-def draw_network_phase(stdscr, start_row: int, config: InstallConfig, selected_line: int):
+def draw_network_phase(stdscr, start_row: int, config: InstallConfig, selected_line: int, mode: str):
     """Draw Network configuration phase"""
     height, width = stdscr.getmaxyx()
     row = start_row + 2
     
     stdscr.addstr(start_row, 2, "NETWORK CONFIGURATION", curses.A_BOLD)
     
-    # Check network status
     status = config.network.status
     status_color = curses.A_BOLD if status == "online" else curses.A_DIM
     
@@ -356,7 +434,7 @@ def draw_network_phase(stdscr, start_row: int, config: InstallConfig, selected_l
     
     return len(lines)
 
-def draw_user_phase(stdscr, start_row: int, config: InstallConfig, selected_line: int):
+def draw_user_phase(stdscr, start_row: int, config: InstallConfig, selected_line: int, mode: str):
     """Draw User configuration phase"""
     height, width = stdscr.getmaxyx()
     row = start_row + 2
@@ -379,18 +457,18 @@ def draw_user_phase(stdscr, start_row: int, config: InstallConfig, selected_line
         if row + idx < height - 5:
             stdscr.addstr(row + idx, 4, line[:width-8], attr)
     
-    stdscr.addstr(row + len(lines) + 1, 4, "Press Enter to edit selected field", curses.A_DIM)
+    if row + len(lines) + 1 < height - 5:
+        stdscr.addstr(row + len(lines) + 1, 4, "Press Enter to edit selected field", curses.A_DIM)
     
     return len(lines)
 
-def draw_disk_phase(stdscr, start_row: int, config: InstallConfig, selected_line: int):
+def draw_disk_phase(stdscr, start_row: int, config: InstallConfig, selected_line: int, mode: str):
     """Draw Disk configuration phase"""
     height, width = stdscr.getmaxyx()
     row = start_row + 2
     
     stdscr.addstr(start_row, 2, "DISK CONFIGURATION", curses.A_BOLD)
     
-    # Get available disks
     try:
         result = subprocess.run(['lsblk', '-d', '-n', '-o', 'NAME,SIZE,MODEL', '-e', '7,11'],
                               capture_output=True, text=True, timeout=5)
@@ -405,12 +483,13 @@ def draw_disk_phase(stdscr, start_row: int, config: InstallConfig, selected_line
             parts = disk_line.split()
             if len(parts) >= 2:
                 attr = curses.A_REVERSE if idx == selected_line else curses.A_NORMAL
-                stdscr.addstr(row + idx, 6, f"/dev/{parts[0]} - {parts[1]} - {' '.join(parts[2:]) if len(parts) > 2 else 'N/A'}", attr)
+                if row + idx < height - 5:
+                    stdscr.addstr(row + idx, 6, f"/dev/{parts[0]} - {parts[1]} - {' '.join(parts[2:]) if len(parts) > 2 else 'N/A'}"[:width-10], attr)
         
-        stdscr.addstr(row + len(available_disks) + 1, 4, "Press Enter to select disk", curses.A_DIM)
+        if row + len(available_disks) + 1 < height - 5:
+            stdscr.addstr(row + len(available_disks) + 1, 4, "Press Enter to select disk", curses.A_DIM)
         return len(available_disks) + 2
     else:
-        # Show configured disk
         disk = config.disks[0]
         lines = [
             f"Device:       {disk.device}",
@@ -422,17 +501,18 @@ def draw_disk_phase(stdscr, start_row: int, config: InstallConfig, selected_line
             f"Filesystem:   [{disk.filesystem}]",
             f"Mountpoint:   [{disk.mountpoint}]",
         ]
-        lines = [l for l in lines if l]  # Remove empty lines
+        lines = [l for l in lines if l]
         
         for idx, line in enumerate(lines):
             attr = curses.A_REVERSE if idx == selected_line else curses.A_NORMAL
             if row + idx < height - 5:
                 stdscr.addstr(row + idx, 4, line[:width-8], attr)
         
-        stdscr.addstr(row + len(lines) + 1, 4, "Press 'd' to change disk, Enter to edit", curses.A_DIM)
+        if row + len(lines) + 1 < height - 5:
+            stdscr.addstr(row + len(lines) + 1, 4, "Press 'd' to change disk, Enter to edit", curses.A_DIM)
         return len(lines)
 
-def draw_environment_phase(stdscr, start_row: int, config: InstallConfig, selected_line: int):
+def draw_environment_phase(stdscr, start_row: int, config: InstallConfig, selected_line: int, mode: str):
     """Draw Environment configuration phase"""
     height, width = stdscr.getmaxyx()
     row = start_row + 2
@@ -446,7 +526,6 @@ def draw_environment_phase(stdscr, start_row: int, config: InstallConfig, select
         "text": ["none"]
     }
     
-    # Graphics selection
     stdscr.addstr(row, 4, "Graphics:", curses.A_BOLD)
     row += 1
     for idx, opt in enumerate(graphics_options):
@@ -454,11 +533,11 @@ def draw_environment_phase(stdscr, start_row: int, config: InstallConfig, select
         attr = curses.A_REVERSE if idx == selected_line and selected_line < 3 else curses.A_NORMAL
         if selected:
             attr |= curses.A_BOLD
-        stdscr.addstr(row, 6 + idx * 12, f"[{opt:8s}]", attr)
+        if row < height - 5:
+            stdscr.addstr(row, 6 + idx * 12, f"[{opt:8s}]", attr)
     
     row += 2
     
-    # Desktop selection
     stdscr.addstr(row, 4, "Desktop:", curses.A_BOLD)
     row += 1
     available_desktops = desktop_options.get(config.environment.graphics, [])
@@ -473,14 +552,13 @@ def draw_environment_phase(stdscr, start_row: int, config: InstallConfig, select
     
     return 3 + len(available_desktops)
 
-def draw_desktop_phase(stdscr, start_row: int, config: InstallConfig, selected_line: int):
+def draw_desktop_phase(stdscr, start_row: int, config: InstallConfig, selected_line: int, mode: str):
     """Draw Desktop packages phase"""
     height, width = stdscr.getmaxyx()
     row = start_row + 2
     
     stdscr.addstr(start_row, 2, "DESKTOP PACKAGES", curses.A_BOLD)
     
-    # Default stack based on desktop
     default_stacks = {
         "cosmic": ["firefox", "kitty", "nautilus"],
         "gnome": ["firefox", "gnome-terminal", "nautilus"],
@@ -493,18 +571,21 @@ def draw_desktop_phase(stdscr, start_row: int, config: InstallConfig, selected_l
     stdscr.addstr(row, 4, "Default Stack:", curses.A_BOLD)
     row += 1
     for pkg in stack:
-        stdscr.addstr(row, 6, f"• {pkg}")
+        if row < height - 5:
+            stdscr.addstr(row, 6, f"• {pkg}")
+            row += 1
+    
+    row += 1
+    if row < height - 5:
+        stdscr.addstr(row, 4, f"Custom Packages: [{', '.join(config.desktop.custom_packages) if config.desktop.custom_packages else 'None'}]")
         row += 1
     
-    row += 1
-    stdscr.addstr(row, 4, f"Custom Packages: [{', '.join(config.desktop.custom_packages) if config.desktop.custom_packages else 'None'}]")
-    row += 1
-    
-    stdscr.addstr(row + 1, 4, "Press 'a' to add custom packages", curses.A_DIM)
+    if row + 1 < height - 5:
+        stdscr.addstr(row + 1, 4, "Press 'a' to add custom packages", curses.A_DIM)
     
     return 10
 
-def draw_review_phase(stdscr, start_row: int, config: InstallConfig, selected_line: int):
+def draw_review_phase(stdscr, start_row: int, config: InstallConfig, selected_line: int, mode: str):
     """Draw Review phase"""
     height, width = stdscr.getmaxyx()
     row = start_row + 2
@@ -551,6 +632,46 @@ def draw_review_phase(stdscr, start_row: int, config: InstallConfig, selected_li
     return len(lines)
 
 # ============================================================================
+# WELCOME SCREEN
+# ============================================================================
+
+def show_welcome_screen(stdscr):
+    """Show welcome screen with framebuffer recommendation"""
+    height, width = stdscr.getmaxyx()
+    mode = get_layout_mode(height)
+    
+    if mode == 'compact':
+        stdscr.clear()
+        stdscr.addstr(0, 0, "╔" + "═" * (width - 2) + "╗")
+        stdscr.addstr(1, (width - 30) // 2, "NIXOS INSTALLER v1.0", curses.A_BOLD)
+        stdscr.addstr(2, 0, "╠" + "═" * (width - 2) + "╣")
+        
+        stdscr.addstr(4, 2, f"Terminal: {height} lines × {width} columns")
+        stdscr.addstr(6, 2, "⚠ RECOMMENDATION:", curses.A_BOLD)
+        stdscr.addstr(8, 2, "For better experience, enable")
+        stdscr.addstr(9, 2, "framebuffer console:")
+        stdscr.addstr(11, 4, "1. Reboot")
+        stdscr.addstr(12, 4, "2. Press 'e' at GRUB")
+        stdscr.addstr(13, 4, "3. Add: vga=791")
+        stdscr.addstr(14, 4, "4. Press F10")
+        stdscr.addstr(16, 2, "This gives 40-50 lines!")
+        
+        stdscr.addstr(height - 4, 0, "╠" + "═" * (width - 2) + "╣")
+        stdscr.addstr(height - 3, 2, "[Enter] Continue  [Esc] Exit")
+        stdscr.addstr(height - 1, 0, "╚" + "═" * (width - 2) + "╝")
+        
+        stdscr.refresh()
+        
+        while True:
+            key = stdscr.getch()
+            if key in [10, 13, curses.KEY_ENTER]:
+                return True
+            elif key == 27:
+                return False
+    
+    return True
+
+# ============================================================================
 # MAIN TUI CLASS
 # ============================================================================
 
@@ -561,12 +682,12 @@ class MultiPhaseInstaller:
         self.current_phase = 0
         self.selected_line = 0
         self.system_info = get_system_info()
+        self.layout_mode = 'normal'
         
         # Check initial network status
         self.config.network.status = check_network_status()
         if self.config.network.status == "online":
             self.config.network.validated = True
-            # Get network info
             try:
                 result = subprocess.run(['ip', 'route', 'get', '8.8.8.8'],
                                       capture_output=True, text=True, timeout=5)
@@ -586,64 +707,73 @@ class MultiPhaseInstaller:
         """Main TUI loop"""
         curses.curs_set(0)
         
-        # Initialize colors if available
         if curses.has_colors():
             curses.start_color()
             curses.use_default_colors()
-            curses.init_pair(1, curses.COLOR_GREEN, -1)
-            curses.init_pair(2, curses.COLOR_RED, -1)
+        
+        # Detect layout mode
+        height, width = stdscr.getmaxyx()
+        self.layout_mode = get_layout_mode(height)
+        
+        # Show welcome screen if compact
+        if self.layout_mode == 'compact':
+            if not show_welcome_screen(stdscr):
+                return None
         
         while True:
             stdscr.clear()
             height, width = stdscr.getmaxyx()
             
+            # Update layout mode dynamically
+            self.layout_mode = get_layout_mode(height)
+            
             # Draw header
-            content_start = draw_header(stdscr, self.system_info)
+            content_start = draw_header(stdscr, self.system_info, self.layout_mode)
             
             # Draw tabs
-            phase_start = draw_tabs(stdscr, content_start, self.phases, self.current_phase, self.config)
+            phase_start = draw_tabs(stdscr, content_start, self.phases, self.current_phase, self.config, self.layout_mode)
             
             # Draw current phase
             if self.current_phase == 0:
-                num_lines = draw_network_phase(stdscr, phase_start, self.config, self.selected_line)
+                num_lines = draw_network_phase(stdscr, phase_start, self.config, self.selected_line, self.layout_mode)
             elif self.current_phase == 1:
-                num_lines = draw_user_phase(stdscr, phase_start, self.config, self.selected_line)
+                num_lines = draw_user_phase(stdscr, phase_start, self.config, self.selected_line, self.layout_mode)
             elif self.current_phase == 2:
-                num_lines = draw_disk_phase(stdscr, phase_start, self.config, self.selected_line)
+                num_lines = draw_disk_phase(stdscr, phase_start, self.config, self.selected_line, self.layout_mode)
             elif self.current_phase == 3:
-                num_lines = draw_environment_phase(stdscr, phase_start, self.config, self.selected_line)
+                num_lines = draw_environment_phase(stdscr, phase_start, self.config, self.selected_line, self.layout_mode)
             elif self.current_phase == 4:
-                num_lines = draw_desktop_phase(stdscr, phase_start, self.config, self.selected_line)
+                num_lines = draw_desktop_phase(stdscr, phase_start, self.config, self.selected_line, self.layout_mode)
             elif self.current_phase == 5:
-                num_lines = draw_review_phase(stdscr, phase_start, self.config, self.selected_line)
+                num_lines = draw_review_phase(stdscr, phase_start, self.config, self.selected_line, self.layout_mode)
             
             # Draw footer
             can_back = self.current_phase > 0
             can_next = self.current_phase < len(self.phases) - 1
             can_finish = self.current_phase == len(self.phases) - 1 and self.config.is_complete()
-            draw_footer(stdscr, can_back, can_next, can_finish)
+            draw_footer(stdscr, can_back, can_next, can_finish, self.layout_mode)
             
             stdscr.refresh()
             
             # Handle input
             key = stdscr.getch()
             
-            if key == curses.KEY_F10 or key == 27:  # F10 or ESC - Abort
+            if key == curses.KEY_F10 or key == 27:
                 return None
             
-            elif key == curses.KEY_F2:  # Back
+            elif key == curses.KEY_F2:
                 if self.current_phase > 0:
                     self.current_phase -= 1
                     self.selected_line = 0
             
-            elif key == curses.KEY_F3:  # Next
+            elif key == curses.KEY_F3:
                 if self.current_phase < len(self.phases) - 1:
                     valid, msg = self.config.validate_phase(self.current_phase)
-                    if valid or self.current_phase >= 4:  # Allow skipping validation for desktop phases
+                    if valid or self.current_phase >= 4:
                         self.current_phase += 1
                         self.selected_line = 0
             
-            elif key == curses.KEY_F4:  # Finish
+            elif key == curses.KEY_F4:
                 if can_finish:
                     return self.config
             
@@ -663,15 +793,15 @@ class MultiPhaseInstaller:
             elif key == curses.KEY_DOWN:
                 self.selected_line = min(num_lines - 1, self.selected_line + 1)
             
-            elif key in [10, 13, curses.KEY_ENTER]:  # Enter
+            elif key in [10, 13, curses.KEY_ENTER]:
                 self.handle_enter(stdscr)
             
-            elif key == ord('c') and self.current_phase == 0:  # Check network
+            elif key == ord('c') and self.current_phase == 0:
                 self.config.network.status = check_network_status()
                 if self.config.network.status == "online":
                     self.config.network.validated = True
             
-            elif key == ord('n') and self.current_phase == 0:  # Configure network
+            elif key == ord('n') and self.current_phase == 0:
                 curses.endwin()
                 subprocess.run(['nmtui'])
                 stdscr = curses.initscr()
@@ -679,11 +809,11 @@ class MultiPhaseInstaller:
     
     def handle_enter(self, stdscr):
         """Handle Enter key press"""
-        if self.current_phase == 1:  # User phase
+        if self.current_phase == 1:
             self.edit_user_field(stdscr)
-        elif self.current_phase == 2:  # Disk phase
+        elif self.current_phase == 2:
             self.edit_disk_field(stdscr)
-        elif self.current_phase == 3:  # Environment phase
+        elif self.current_phase == 3:
             self.edit_environment_field()
     
     def edit_user_field(self, stdscr):
@@ -691,13 +821,13 @@ class MultiPhaseInstaller:
         curses.echo()
         curses.curs_set(1)
         
-        if self.selected_line == 0:  # Username
+        if self.selected_line == 0:
             stdscr.addstr(15, 20, " " * 30)
             stdscr.refresh()
             value = stdscr.getstr(15, 20, 30).decode('utf-8')
             if value:
                 self.config.user.username = value
-        elif self.selected_line == 1:  # Full name
+        elif self.selected_line == 1:
             stdscr.addstr(16, 20, " " * 30)
             stdscr.refresh()
             value = stdscr.getstr(16, 20, 30).decode('utf-8')
@@ -710,7 +840,6 @@ class MultiPhaseInstaller:
     def edit_disk_field(self, stdscr):
         """Edit disk configuration"""
         if not self.config.disks:
-            # Select disk
             try:
                 result = subprocess.run(['lsblk', '-d', '-n', '-o', 'NAME,SIZE,MODEL', '-e', '7,11'],
                                       capture_output=True, text=True, timeout=5)
@@ -730,11 +859,11 @@ class MultiPhaseInstaller:
     
     def edit_environment_field(self):
         """Edit environment configuration"""
-        if self.selected_line < 3:  # Graphics
+        if self.selected_line < 3:
             graphics_options = ["wayland", "xorg", "text"]
             self.config.environment.graphics = graphics_options[self.selected_line]
-            self.config.environment.desktop = ""  # Reset desktop
-        else:  # Desktop
+            self.config.environment.desktop = ""
+        else:
             desktop_options = {
                 "wayland": ["cosmic", "hyprland", "gnome", "plasma", "sway"],
                 "xorg": ["xfce", "mate", "i3", "awesome", "gnome"],
@@ -756,7 +885,6 @@ def main():
         result = curses.wrapper(installer.run)
         
         if result:
-            # Save configuration
             config_path = '/tmp/nixos_install_config.json'
             result.to_json(config_path)
             
@@ -771,7 +899,6 @@ def main():
             print(f"  Desktop:  {result.environment.desktop} on {result.environment.graphics}")
             print("=" * 70)
             
-            # Output shell variables
             print("\n# Shell variables:")
             print(f"hostname='{result.user.username}-nixos'")
             print(f"username='{result.user.username}'")
