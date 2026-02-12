@@ -1,5 +1,10 @@
 { config, pkgs, ... }:
 
+let
+  warmDir = "/mnt/WARM/juliano/";
+  coldDir = "/mnt/COLD/juliano/";
+  
+in
 {
   environment.etc = {
     "lsyncd/lsyncd.conf.lua".text = ''
@@ -25,13 +30,11 @@
           return false
       end
 
-      -- Sincronização Simplificada (Espelhamento com Exclusão)
       if is_mounted("/mnt/COLD") then
           sync {
               default.rsync,
-              source    = "/mnt/WARM/juliano/",
-              target    = "/mnt/COLD/juliano/",
-              -- Lsyncd usa este arquivo para filtrar o que NÃO sincronizar
+              source    = "${warmDir}",
+              target    = "${coldDir}",
               excludeFrom = "/etc/lsyncd/lsyncd.exclude",
               rsync     = {
                   archive  = true,
@@ -60,7 +63,11 @@
       .cargo/
       .pki/
       .vscode/
-      .local/share/Steam/
+      .local/share/Steam/steamapps/common/
+      .local/share/Steam/steamapps/downloading/
+      .local/share/Steam/steamapps/temp/
+      .local/share/Steam/steamapps/workshop/
+      .local/share/Steam/compatibilitytools.d/
       .local/state
       .local/lib
       .local/cache
