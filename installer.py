@@ -484,9 +484,29 @@ def draw_user_phase(stdscr, start_row: int, config: InstallConfig, selected_line
     ]
     
     for idx, line in enumerate(lines):
-        attr = curses.A_REVERSE if idx == selected_line else curses.A_NORMAL
         if row + idx < height - 5:
-            safe_addstr(stdscr, row + idx, 4, line[:width-8], attr)
+            # Split line into label and bracket content
+            bracket_start = line.find('[')
+            bracket_end = line.find(']') + 1
+            
+            if bracket_start != -1 and bracket_end > bracket_start:
+                # Draw label (before bracket)
+                label = line[:bracket_start]
+                safe_addstr(stdscr, row + idx, 4, label, curses.A_NORMAL)
+                
+                # Draw bracket content (with highlight if selected)
+                bracket_content = line[bracket_start:bracket_end]
+                attr = curses.A_REVERSE if idx == selected_line else curses.A_NORMAL
+                safe_addstr(stdscr, row + idx, 4 + len(label), bracket_content, attr)
+                
+                # Draw suffix (after bracket, like <Space>, <Enter>)
+                suffix = line[bracket_end:]
+                if suffix:
+                    safe_addstr(stdscr, row + idx, 4 + len(label) + len(bracket_content), suffix, curses.A_DIM)
+            else:
+                # Fallback: draw entire line
+                attr = curses.A_REVERSE if idx == selected_line else curses.A_NORMAL
+                safe_addstr(stdscr, row + idx, 4, line[:width-8], attr)
     
     if row + len(lines) + 2 < height - 5:
         safe_addstr(stdscr, row + len(lines) + 1, 4, "Enter: Edit | Space: Toggle YES/NO", curses.A_DIM)
@@ -929,10 +949,26 @@ class MultiPhaseInstaller:
         """Edit user configuration field with proper alignment"""
         height, width = stdscr.getmaxyx()
         
-        # Calculate the position of the bracket content
-        # Format: "Label:  [content]"
-        # The bracket starts at column 20 (4 indent + 16 label width)
-        bracket_col = 20
+        # Labels for each field (must match draw_user_phase)
+        labels = [
+            "Username:      ",
+            "Full Name:     ",
+            "UID:           ",
+            "GID:           ",
+            "Primary Group: ",
+            "Extra Groups:  ",
+            "Sudoer:        ",
+            "NOPASSWD:      ",
+            "Root Password: ",
+        ]
+        
+        # Calculate bracket position: 4 (indent) + label_length + 1 (for '[')
+        if self.selected_line < len(labels):
+            label = labels[self.selected_line]
+            bracket_col = 4 + len(label) + 1  # +1 to position after '['
+        else:
+            bracket_col = 21  # Fallback
+        
         field_width = 30
         
         # Determine which row to edit based on layout
@@ -949,7 +985,9 @@ class MultiPhaseInstaller:
         if self.selected_line == 0:  # Username
             curses.echo()
             curses.curs_set(1)
+            # Clear the field content (inside brackets)
             safe_addstr(stdscr, edit_row, bracket_col, " " * field_width)
+            stdscr.move(edit_row, bracket_col)  # Position cursor inside bracket
             stdscr.refresh()
             try:
                 value = stdscr.getstr(edit_row, bracket_col, field_width).decode('utf-8').strip()
@@ -964,6 +1002,7 @@ class MultiPhaseInstaller:
             curses.echo()
             curses.curs_set(1)
             safe_addstr(stdscr, edit_row, bracket_col, " " * field_width)
+            stdscr.move(edit_row, bracket_col)
             stdscr.refresh()
             try:
                 value = stdscr.getstr(edit_row, bracket_col, field_width).decode('utf-8').strip()
@@ -978,6 +1017,7 @@ class MultiPhaseInstaller:
             curses.echo()
             curses.curs_set(1)
             safe_addstr(stdscr, edit_row, bracket_col, " " * field_width)
+            stdscr.move(edit_row, bracket_col)
             stdscr.refresh()
             try:
                 value = stdscr.getstr(edit_row, bracket_col, field_width).decode('utf-8').strip()
@@ -992,6 +1032,7 @@ class MultiPhaseInstaller:
             curses.echo()
             curses.curs_set(1)
             safe_addstr(stdscr, edit_row, bracket_col, " " * field_width)
+            stdscr.move(edit_row, bracket_col)
             stdscr.refresh()
             try:
                 value = stdscr.getstr(edit_row, bracket_col, field_width).decode('utf-8').strip()
@@ -1006,6 +1047,7 @@ class MultiPhaseInstaller:
             curses.echo()
             curses.curs_set(1)
             safe_addstr(stdscr, edit_row, bracket_col, " " * field_width)
+            stdscr.move(edit_row, bracket_col)
             stdscr.refresh()
             try:
                 value = stdscr.getstr(edit_row, bracket_col, field_width).decode('utf-8').strip()
@@ -1020,6 +1062,7 @@ class MultiPhaseInstaller:
             curses.echo()
             curses.curs_set(1)
             safe_addstr(stdscr, edit_row, bracket_col, " " * field_width)
+            stdscr.move(edit_row, bracket_col)
             stdscr.refresh()
             try:
                 value = stdscr.getstr(edit_row, bracket_col, field_width).decode('utf-8').strip()
