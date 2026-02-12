@@ -163,6 +163,19 @@ def get_layout_mode(height: int) -> str:
     else:
         return 'expanded'
 
+def safe_addstr(stdscr, y: int, x: int, text: str, attr=curses.A_NORMAL):
+    """Safely add string to screen with bounds checking"""
+    try:
+        height, width = stdscr.getmaxyx()
+        if y < 0 or y >= height or x < 0 or x >= width:
+            return
+        # Truncate text if it would go beyond screen width
+        max_len = width - x - 1
+        if max_len > 0:
+            stdscr.addstr(y, x, text[:max_len], attr)
+    except curses.error:
+        pass  # Silently ignore curses errors
+
 # ============================================================================
 # SYSTEM INFORMATION
 # ============================================================================
@@ -241,24 +254,24 @@ def draw_header(stdscr, system_info: dict, mode: str):
     height, width = stdscr.getmaxyx()
     
     # Top border
-    stdscr.addstr(0, 0, "╔" + "═" * (width - 2) + "╗")
+    safe_addstr(stdscr, 0, 0, "╔" + "═" * (width - 2) + "╗")
     
     if mode == 'compact':
         # Compact: 1 line of info
         title = "NixOS Installer"
-        stdscr.addstr(1, 2, title, curses.A_BOLD)
+        safe_addstr(stdscr, 1, 2, title, curses.A_BOLD)
         
         # Single line with essential info
         info_line = f"CPU: {system_info.get('cpu', 'Unknown')[:20]} | {system_info.get('cores', '?')}c | {system_info.get('memory', '?')} | {system_info.get('ip', 'No net')}"
-        stdscr.addstr(2, 2, info_line[:width-4])
+        safe_addstr(stdscr, 2, 2, info_line[:width-4])
         
-        stdscr.addstr(3, 0, "╠" + "═" * (width - 2) + "╣")
+        safe_addstr(stdscr, 3, 0, "╠" + "═" * (width - 2) + "╣")
         return 4
     
     elif mode == 'normal':
         # Normal: Current layout (7 lines)
         title = "NIXOS MULTI-PHASE INSTALLER"
-        stdscr.addstr(1, (width - len(title)) // 2, title, curses.A_BOLD)
+        safe_addstr(stdscr, 1, (width - len(title)) // 2, title, curses.A_BOLD)
         
         info_lines = [
             f"CPU: {system_info.get('cpu', 'Unknown')} | Cores: {system_info.get('cores', '?')} | RAM: {system_info.get('memory', '?')}",
@@ -268,18 +281,18 @@ def draw_header(stdscr, system_info: dict, mode: str):
         ]
         
         for i, line in enumerate(info_lines):
-            stdscr.addstr(2 + i, 2, line[:width-4])
+            safe_addstr(stdscr, 2 + i, 2, line[:width-4])
         
-        stdscr.addstr(6, 0, "╠" + "═" * (width - 2) + "╣")
+        safe_addstr(stdscr, 6, 0, "╠" + "═" * (width - 2) + "╣")
         return 7
     
     else:  # expanded
         # Expanded: More detailed info (10 lines)
         title = "NIXOS MULTI-PHASE INSTALLER"
-        stdscr.addstr(1, (width - len(title)) // 2, title, curses.A_BOLD)
+        safe_addstr(stdscr, 1, (width - len(title)) // 2, title, curses.A_BOLD)
         
         subtitle = "Responsive Design with Framebuffer Support"
-        stdscr.addstr(2, (width - len(subtitle)) // 2, subtitle, curses.A_DIM)
+        safe_addstr(stdscr, 2, (width - len(subtitle)) // 2, subtitle, curses.A_DIM)
         
         info_lines = [
             "",
@@ -293,9 +306,9 @@ def draw_header(stdscr, system_info: dict, mode: str):
         
         for i, line in enumerate(info_lines):
             if line:
-                stdscr.addstr(3 + i, 2, line[:width-4])
+                safe_addstr(stdscr, 3 + i, 2, line[:width-4])
         
-        stdscr.addstr(10, 0, "╠" + "═" * (width - 2) + "╣")
+        safe_addstr(stdscr, 10, 0, "╠" + "═" * (width - 2) + "╣")
         return 11
 
 def draw_tabs(stdscr, row: int, phases: List[str], current_idx: int, config: InstallConfig, mode: str):
@@ -329,7 +342,7 @@ def draw_tabs(stdscr, row: int, phases: List[str], current_idx: int, config: Ins
             attr = curses.A_REVERSE | curses.A_BOLD if idx == current_idx else curses.A_NORMAL
             
             if col + len(tab_text) + 1 < width:
-                stdscr.addstr(row, col, f" {tab_text}", attr)
+                safe_addstr(stdscr, row, col, f" {tab_text}", attr)
             col += tab_width
     
     else:
@@ -358,50 +371,57 @@ def draw_tabs(stdscr, row: int, phases: List[str], current_idx: int, config: Ins
             attr = curses.A_REVERSE | curses.A_BOLD if idx == current_idx else curses.A_NORMAL
             
             if col + len(tab_text) < width:
-                stdscr.addstr(row, col, tab_text, attr)
+                safe_addstr(stdscr, row, col, tab_text, attr)
             col += tab_width
     
-    stdscr.addstr(row + 1, 0, "╠" + "═" * (width - 2) + "╣")
+    safe_addstr(stdscr, row + 1, 0, "╠" + "═" * (width - 2) + "╣")
     return row + 2
 
 def draw_footer(stdscr, can_go_back: bool, can_go_next: bool, can_finish: bool, mode: str):
     """Draw footer with action buttons (responsive)"""
     height, width = stdscr.getmaxyx()
     
-    stdscr.addstr(height - 4, 0, "╠" + "═" * (width - 2) + "╣")
+    # Ensure we have enough space
+    if height < 5 or width < 20:
+        return
     
-    if mode == 'compact':
-        # Compact: Shorter help text
-        help_text = "Ctrl+←/→:Tabs | ↑↓:Nav | Enter:Edit | Esc:Abort"
-        stdscr.addstr(height - 3, 2, help_text[:width-4], curses.A_DIM)
-    else:
-        # Normal/Expanded: Full help text
-        help_text = "Ctrl+←/→: Switch tabs | ↑↓: Navigate | Enter: Edit | Esc: Abort"
-        stdscr.addstr(height - 3, 2, help_text[:width-4], curses.A_DIM)
-    
-    # Buttons
-    buttons = []
-    buttons.append(("[F10] Abort", curses.A_DIM))
-    
-    if can_go_back:
-        buttons.append(("[F2] Back", curses.A_NORMAL))
-    
-    if can_go_next:
-        buttons.append(("[F3] Next", curses.A_BOLD))
-    
-    if can_finish:
-        buttons.append(("[F4] Finish", curses.A_BOLD))
-    
-    button_text = "  ".join([b[0] for b in buttons])
-    start_col = (width - len(button_text)) // 2
-    
-    col = start_col
-    for text, attr in buttons:
-        if col + len(text) < width - 2:
-            stdscr.addstr(height - 2, col, text, attr)
-            col += len(text) + 2
-    
-    stdscr.addstr(height - 1, 0, "╚" + "═" * (width - 2) + "╝")
+    try:
+        safe_addstr(stdscr, height - 4, 0, "╠" + "═" * (width - 2) + "╣")
+        
+        if mode == 'compact':
+            # Compact: Shorter help text
+            help_text = "Ctrl+←/→:Tabs | ↑↓:Nav | Enter:Edit | Esc:Abort"
+            safe_addstr(stdscr, height - 3, 2, help_text[:width-4], curses.A_DIM)
+        else:
+            # Normal/Expanded: Full help text
+            help_text = "Ctrl+←/→: Switch tabs | ↑↓: Navigate | Enter: Edit | Esc: Abort"
+            safe_addstr(stdscr, height - 3, 2, help_text[:width-4], curses.A_DIM)
+        
+        # Buttons
+        buttons = []
+        buttons.append(("[F10] Abort", curses.A_DIM))
+        
+        if can_go_back:
+            buttons.append(("[F2] Back", curses.A_NORMAL))
+        
+        if can_go_next:
+            buttons.append(("[F3] Next", curses.A_BOLD))
+        
+        if can_finish:
+            buttons.append(("[F4] Finish", curses.A_BOLD))
+        
+        button_text = "  ".join([b[0] for b in buttons])
+        start_col = max(0, (width - len(button_text)) // 2)
+        
+        col = start_col
+        for text, attr in buttons:
+            if col + len(text) < width - 2:
+                safe_addstr(stdscr, height - 2, col, text, attr)
+                col += len(text) + 2
+        
+        safe_addstr(stdscr, height - 1, 0, "╚" + "═" * (width - 2) + "╝")
+    except Exception:
+        pass  # Silently handle any drawing errors
 
 # ============================================================================
 # PHASE IMPLEMENTATIONS (Same as before, but with scroll support)
