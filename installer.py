@@ -226,6 +226,15 @@ def get_system_info() -> dict:
     except:
         info['ip'] = 'Unknown'
     
+    # Gateway
+    try:
+        result = subprocess.run(['ip', 'route', 'show', 'default'],
+                              capture_output=True, text=True, timeout=5)
+        gateway_match = re.search(r'default via (\d+\.\d+\.\d+\.\d+)', result.stdout)
+        info['gateway'] = gateway_match.group(1) if gateway_match else 'N/A'
+    except:
+        info['gateway'] = 'N/A'
+    
     # GPU
     try:
         result = subprocess.run(['lspci'], capture_output=True, text=True, timeout=5)
@@ -459,26 +468,29 @@ def draw_user_phase(stdscr, start_row: int, config: InstallConfig, selected_line
     height, width = stdscr.getmaxyx()
     row = start_row + 2
     
-    stdscr.addstr(start_row, 2, "USER CONFIGURATION", curses.A_BOLD)
+    safe_addstr(stdscr, start_row, 2, "USER CONFIGURATION", curses.A_BOLD)
     
+    # Format fields with proper alignment (left-aligned in brackets)
     lines = [
-        f"Username:     [{config.user.username:30s}]",
-        f"Full Name:    [{config.user.fullname:30s}]",
-        f"UID:          [{config.user.uid}]",
-        f"Primary Group:[{config.user.group_name:30s}]",
-        f"Groups:       [{', '.join(config.user.groups):30s}]",
-        f"Sudoer:       [{'YES' if config.user.sudoer else 'NO'}]",
-        f"No Password:  [{'YES' if config.user.nopasswd else 'NO'}]",
-        f"Root Password:[{'SET' if config.user.root_password_set else 'NOT SET'}]",
+        f"Username:      [{config.user.username:<30s}]",
+        f"Full Name:     [{config.user.fullname:<30s}]",
+        f"UID:           [{str(config.user.uid):<30s}]",
+        f"GID:           [{str(config.user.gid):<30s}]",
+        f"Primary Group: [{config.user.group_name:<30s}]",
+        f"Extra Groups:  [{', '.join(config.user.groups):<30s}]",
+        f"Sudoer:        [{'YES' if config.user.sudoer else 'NO':<30s}]  <Space>",
+        f"NOPASSWD:      [{'YES' if config.user.nopasswd else 'NO':<30s}]  <Space>",
+        f"Root Password: [{'SET' if config.user.root_password_set else 'NOT SET':<30s}]  <Enter>",
     ]
     
     for idx, line in enumerate(lines):
         attr = curses.A_REVERSE if idx == selected_line else curses.A_NORMAL
         if row + idx < height - 5:
-            stdscr.addstr(row + idx, 4, line[:width-8], attr)
+            safe_addstr(stdscr, row + idx, 4, line[:width-8], attr)
     
-    if row + len(lines) + 1 < height - 5:
-        stdscr.addstr(row + len(lines) + 1, 4, "Press Enter to edit selected field", curses.A_DIM)
+    if row + len(lines) + 2 < height - 5:
+        safe_addstr(stdscr, row + len(lines) + 1, 4, "Enter: Edit | Space: Toggle YES/NO", curses.A_DIM)
+        safe_addstr(stdscr, row + len(lines) + 2, 4, "Extra Groups: comma-separated (e.g., wheel,audio,video)", curses.A_DIM)
     
     return len(lines)
 
@@ -487,7 +499,7 @@ def draw_disk_phase(stdscr, start_row: int, config: InstallConfig, selected_line
     height, width = stdscr.getmaxyx()
     row = start_row + 2
     
-    stdscr.addstr(start_row, 2, "DISK CONFIGURATION", curses.A_BOLD)
+    safe_addstr(stdscr, start_row, 2, "DISK CONFIGURATION", curses.A_BOLD)
     
     try:
         result = subprocess.run(['lsblk', '-d', '-n', '-o', 'NAME,SIZE,MODEL', '-e', '7,11'],
@@ -497,39 +509,77 @@ def draw_disk_phase(stdscr, start_row: int, config: InstallConfig, selected_line
         available_disks = []
     
     if not config.disks:
-        stdscr.addstr(row, 4, "Available Disks:", curses.A_BOLD)
+        safe_addstr(stdscr, row, 4, "Available Disks:", curses.A_BOLD)
         row += 1
         for idx, disk_line in enumerate(available_disks):
             parts = disk_line.split()
             if len(parts) >= 2:
                 attr = curses.A_REVERSE if idx == selected_line else curses.A_NORMAL
                 if row + idx < height - 5:
-                    stdscr.addstr(row + idx, 6, f"/dev/{parts[0]} - {parts[1]} - {' '.join(parts[2:]) if len(parts) > 2 else 'N/A'}"[:width-10], attr)
+                    safe_addstr(stdscr, row + idx, 6, f"/dev/{parts[0]} - {parts[1]} - {' '.join(parts[2:]) if len(parts) > 2 else 'N/A'}"[:width-10], attr)
         
         if row + len(available_disks) + 1 < height - 5:
-            stdscr.addstr(row + len(available_disks) + 1, 4, "Press Enter to select disk", curses.A_DIM)
+            safe_addstr(stdscr, row + len(available_disks) + 1, 4, "Press Enter to select disk", curses.A_DIM)
         return len(available_disks) + 2
     else:
         disk = config.disks[0]
-        lines = [
-            f"Device:       {disk.device}",
-            f"Size:         {disk.size}",
-            f"LVM:          [{'YES' if disk.lvm else 'NO'}]",
-            f"ZFS:          [{'YES' if disk.zfs else 'NO'}]",
-            f"VG Name:      [{disk.vg_name}]" if disk.lvm else "",
-            f"LV Name:      [{disk.lv_name}]" if disk.lvm else "",
-            f"Filesystem:   [{disk.filesystem}]",
-            f"Mountpoint:   [{disk.mountpoint}]",
-        ]
-        lines = [l for l in lines if l]
         
-        for idx, line in enumerate(lines):
-            attr = curses.A_REVERSE if idx == selected_line else curses.A_NORMAL
+        # Build lines with conditional display and proper formatting
+        lines = []
+        line_types = []  # Track what each line represents
+        
+        lines.append(f"Device:       {disk.device}")
+        line_types.append('info')
+        
+        lines.append(f"Size:         {disk.size}")
+        line_types.append('info')
+        
+        lines.append(f"LVM:          [{'YES' if disk.lvm else 'NO':<30s}]  <Space>")
+        line_types.append('toggle')
+        
+        # LVM options (show in gray if LVM is disabled)
+        if disk.lvm:
+            lines.append(f"  VG Name:    [{disk.vg_name:<30s}]")
+            line_types.append('edit')
+            lines.append(f"  LV Name:    [{disk.lv_name:<30s}]")
+            line_types.append('edit')
+            lines.append(f"  ZFS:        [{'YES' if disk.zfs else 'NO':<30s}]  <Space>")
+            line_types.append('toggle')
+        else:
+            lines.append(f"  VG Name:    [{disk.vg_name:<30s}]")
+            line_types.append('disabled')
+            lines.append(f"  LV Name:    [{disk.lv_name:<30s}]")
+            line_types.append('disabled')
+            lines.append(f"  ZFS:        [{'YES' if disk.zfs else 'NO':<30s}]")
+            line_types.append('disabled')
+        
+        # Filesystem (conditional on ZFS)
+        if disk.zfs:
+            lines.append(f"Filesystem:   [ZFS (automatic)]")
+            line_types.append('info')
+        else:
+            lines.append(f"Filesystem:   [{disk.filesystem:<30s}]")
+            line_types.append('edit')
+        
+        lines.append(f"Mountpoint:   [{disk.mountpoint:<30s}]")
+        line_types.append('edit')
+        
+        # Draw lines with appropriate attributes
+        for idx, (line, line_type) in enumerate(zip(lines, line_types)):
+            if idx == selected_line:
+                attr = curses.A_REVERSE
+            elif line_type == 'disabled':
+                attr = curses.A_DIM  # Gray out disabled options
+            else:
+                attr = curses.A_NORMAL
+            
             if row + idx < height - 5:
-                stdscr.addstr(row + idx, 4, line[:width-8], attr)
+                safe_addstr(stdscr, row + idx, 4, line[:width-8], attr)
         
-        if row + len(lines) + 1 < height - 5:
-            stdscr.addstr(row + len(lines) + 1, 4, "Press 'd' to change disk, Enter to edit", curses.A_DIM)
+        if row + len(lines) + 2 < height - 5:
+            safe_addstr(stdscr, row + len(lines) + 1, 4, "Enter: Edit | Space: Toggle | 'd': Change disk", curses.A_DIM)
+            safe_addstr(stdscr, row + len(lines) + 2, 4, "LVM options shown in gray when LVM is disabled", curses.A_DIM)
+        
         return len(lines)
 
 def draw_environment_phase(stdscr, start_row: int, config: InstallConfig, selected_line: int, mode: str):
@@ -720,6 +770,13 @@ class MultiPhaseInstaller:
                 ip_match = re.search(r'inet\s+(\d+\.\d+\.\d+\.\d+)', result.stdout)
                 if ip_match:
                     self.config.network.ip = ip_match.group(1)
+                
+                # Get gateway
+                result = subprocess.run(['ip', 'route', 'show', 'default'],
+                                      capture_output=True, text=True, timeout=5)
+                gateway_match = re.search(r'default via (\d+\.\d+\.\d+\.\d+)', result.stdout)
+                if gateway_match:
+                    self.config.network.gateway = gateway_match.group(1)
             except:
                 pass
     
@@ -816,10 +873,42 @@ class MultiPhaseInstaller:
             elif key in [10, 13, curses.KEY_ENTER]:
                 self.handle_enter(stdscr)
             
+            elif key == ord(' '):  # Space key for toggles
+                if self.current_phase == 1:  # User phase
+                    if self.selected_line in [6, 7]:  # Sudoer or NOPASSWD
+                        self.edit_user_field(stdscr)
+                elif self.current_phase == 2 and self.config.disks:  # Disk phase
+                    disk = self.config.disks[0]
+                    if self.selected_line == 2:  # LVM toggle
+                        self.edit_disk_field(stdscr)
+                    elif self.selected_line == 5 and disk.lvm:  # ZFS toggle
+                        self.edit_disk_field(stdscr)
+            
             elif key == ord('c') and self.current_phase == 0:
                 self.config.network.status = check_network_status()
                 if self.config.network.status == "online":
                     self.config.network.validated = True
+                    try:
+                        # Update IP and gateway
+                        result = subprocess.run(['ip', 'route', 'get', '8.8.8.8'],
+                                              capture_output=True, text=True, timeout=5)
+                        interface_match = re.search(r'dev\s+(\S+)', result.stdout)
+                        if interface_match:
+                            self.config.network.interface = interface_match.group(1)
+                        
+                        result = subprocess.run(['ip', '-4', 'addr', 'show', self.config.network.interface],
+                                              capture_output=True, text=True, timeout=5)
+                        ip_match = re.search(r'inet\s+(\d+\.\d+\.\d+\.\d+)', result.stdout)
+                        if ip_match:
+                            self.config.network.ip = ip_match.group(1)
+                        
+                        result = subprocess.run(['ip', 'route', 'show', 'default'],
+                                              capture_output=True, text=True, timeout=5)
+                        gateway_match = re.search(r'default via (\d+\.\d+\.\d+\.\d+)', result.stdout)
+                        if gateway_match:
+                            self.config.network.gateway = gateway_match.group(1)
+                    except:
+                        pass
             
             elif key == ord('n') and self.current_phase == 0:
                 curses.endwin()
@@ -837,29 +926,162 @@ class MultiPhaseInstaller:
             self.edit_environment_field()
     
     def edit_user_field(self, stdscr):
-        """Edit user configuration field"""
-        curses.echo()
-        curses.curs_set(1)
+        """Edit user configuration field with proper alignment"""
+        height, width = stdscr.getmaxyx()
         
-        if self.selected_line == 0:
-            stdscr.addstr(15, 20, " " * 30)
-            stdscr.refresh()
-            value = stdscr.getstr(15, 20, 30).decode('utf-8')
-            if value:
-                self.config.user.username = value
-        elif self.selected_line == 1:
-            stdscr.addstr(16, 20, " " * 30)
-            stdscr.refresh()
-            value = stdscr.getstr(16, 20, 30).decode('utf-8')
-            if value:
-                self.config.user.fullname = value
+        # Calculate the position of the bracket content
+        # Format: "Label:  [content]"
+        # The bracket starts at column 20 (4 indent + 16 label width)
+        bracket_col = 20
+        field_width = 30
         
-        curses.noecho()
-        curses.curs_set(0)
+        # Determine which row to edit based on layout
+        layout_mode = get_layout_mode(height)
+        if layout_mode == 'compact':
+            base_row = 6  # 4 (header) + 2 (tabs)
+        elif layout_mode == 'normal':
+            base_row = 9  # 7 (header) + 2 (tabs)
+        else:  # expanded
+            base_row = 13  # 11 (header) + 2 (tabs)
+        
+        edit_row = base_row + self.selected_line
+        
+        if self.selected_line == 0:  # Username
+            curses.echo()
+            curses.curs_set(1)
+            safe_addstr(stdscr, edit_row, bracket_col, " " * field_width)
+            stdscr.refresh()
+            try:
+                value = stdscr.getstr(edit_row, bracket_col, field_width).decode('utf-8').strip()
+                if value:
+                    self.config.user.username = value
+            except:
+                pass
+            curses.noecho()
+            curses.curs_set(0)
+        
+        elif self.selected_line == 1:  # Full Name
+            curses.echo()
+            curses.curs_set(1)
+            safe_addstr(stdscr, edit_row, bracket_col, " " * field_width)
+            stdscr.refresh()
+            try:
+                value = stdscr.getstr(edit_row, bracket_col, field_width).decode('utf-8').strip()
+                if value:
+                    self.config.user.fullname = value
+            except:
+                pass
+            curses.noecho()
+            curses.curs_set(0)
+        
+        elif self.selected_line == 2:  # UID
+            curses.echo()
+            curses.curs_set(1)
+            safe_addstr(stdscr, edit_row, bracket_col, " " * field_width)
+            stdscr.refresh()
+            try:
+                value = stdscr.getstr(edit_row, bracket_col, field_width).decode('utf-8').strip()
+                if value.isdigit():
+                    self.config.user.uid = int(value)
+            except:
+                pass
+            curses.noecho()
+            curses.curs_set(0)
+        
+        elif self.selected_line == 3:  # GID
+            curses.echo()
+            curses.curs_set(1)
+            safe_addstr(stdscr, edit_row, bracket_col, " " * field_width)
+            stdscr.refresh()
+            try:
+                value = stdscr.getstr(edit_row, bracket_col, field_width).decode('utf-8').strip()
+                if value.isdigit():
+                    self.config.user.gid = int(value)
+            except:
+                pass
+            curses.noecho()
+            curses.curs_set(0)
+        
+        elif self.selected_line == 4:  # Primary Group
+            curses.echo()
+            curses.curs_set(1)
+            safe_addstr(stdscr, edit_row, bracket_col, " " * field_width)
+            stdscr.refresh()
+            try:
+                value = stdscr.getstr(edit_row, bracket_col, field_width).decode('utf-8').strip()
+                if value:
+                    self.config.user.group_name = value
+            except:
+                pass
+            curses.noecho()
+            curses.curs_set(0)
+        
+        elif self.selected_line == 5:  # Extra Groups
+            curses.echo()
+            curses.curs_set(1)
+            safe_addstr(stdscr, edit_row, bracket_col, " " * field_width)
+            stdscr.refresh()
+            try:
+                value = stdscr.getstr(edit_row, bracket_col, field_width).decode('utf-8').strip()
+                if value:
+                    # Parse comma-separated groups
+                    groups = [g.strip() for g in value.split(',') if g.strip()]
+                    self.config.user.groups = groups
+            except:
+                pass
+            curses.noecho()
+            curses.curs_set(0)
+        
+        elif self.selected_line == 6:  # Sudoer (toggle)
+            self.config.user.sudoer = not self.config.user.sudoer
+        
+        elif self.selected_line == 7:  # NOPASSWD (toggle)
+            self.config.user.nopasswd = not self.config.user.nopasswd
+        
+        elif self.selected_line == 8:  # Root Password
+            import time
+            curses.noecho()  # Disable echo for password
+            curses.curs_set(1)
+            
+            # Show password input dialog
+            dialog_height = 7
+            dialog_width = 50
+            dialog_y = (height - dialog_height) // 2
+            dialog_x = (width - dialog_width) // 2
+            
+            # Draw dialog box
+            for i in range(dialog_height):
+                safe_addstr(stdscr, dialog_y + i, dialog_x, " " * dialog_width, curses.A_REVERSE)
+            
+            safe_addstr(stdscr, dialog_y + 1, dialog_x + 2, "Set Root Password", curses.A_REVERSE | curses.A_BOLD)
+            safe_addstr(stdscr, dialog_y + 3, dialog_x + 2, "Password: ", curses.A_REVERSE)
+            safe_addstr(stdscr, dialog_y + 4, dialog_x + 2, "Confirm:  ", curses.A_REVERSE)
+            safe_addstr(stdscr, dialog_y + 6, dialog_x + 2, "Enter to save, Esc to cancel", curses.A_REVERSE | curses.A_DIM)
+            
+            stdscr.refresh()
+            
+            try:
+                # Get password (without echo)
+                password1 = stdscr.getstr(dialog_y + 3, dialog_x + 12, 30).decode('utf-8')
+                password2 = stdscr.getstr(dialog_y + 4, dialog_x + 12, 30).decode('utf-8')
+                
+                if password1 and password1 == password2:
+                    self.config.user.root_password_set = True
+                    # In real implementation, store hashed password
+                else:
+                    # Show error briefly
+                    safe_addstr(stdscr, dialog_y + 5, dialog_x + 2, "Passwords don't match!", curses.A_REVERSE | curses.A_BOLD)
+                    stdscr.refresh()
+                    time.sleep(1)
+            except:
+                pass
+            
+            curses.curs_set(0)
     
     def edit_disk_field(self, stdscr):
-        """Edit disk configuration"""
+        """Edit disk configuration with toggles and conditional editing"""
         if not self.config.disks:
+            # Selecting initial disk
             try:
                 result = subprocess.run(['lsblk', '-d', '-n', '-o', 'NAME,SIZE,MODEL', '-e', '7,11'],
                                       capture_output=True, text=True, timeout=5)
@@ -876,6 +1098,114 @@ class MultiPhaseInstaller:
                         self.selected_line = 0
             except:
                 pass
+        else:
+            # Editing disk configuration
+            disk = self.config.disks[0]
+            height, width = stdscr.getmaxyx()
+            
+            # Map selected_line to actual field
+            # 0: Device (info)
+            # 1: Size (info)
+            # 2: LVM (toggle)
+            # 3: VG Name (edit if LVM)
+            # 4: LV Name (edit if LVM)
+            # 5: ZFS (toggle if LVM)
+            # 6: Filesystem (edit if not ZFS)
+            # 7: Mountpoint (edit)
+            
+            if self.selected_line == 2:  # LVM toggle
+                disk.lvm = not disk.lvm
+                if not disk.lvm:
+                    disk.zfs = False  # Disable ZFS if LVM is disabled
+            
+            elif self.selected_line == 3 and disk.lvm:  # VG Name
+                bracket_col = 20
+                field_width = 30
+                layout_mode = get_layout_mode(height)
+                if layout_mode == 'compact':
+                    base_row = 6
+                elif layout_mode == 'normal':
+                    base_row = 9
+                else:
+                    base_row = 13
+                edit_row = base_row + self.selected_line
+                
+                curses.echo()
+                curses.curs_set(1)
+                safe_addstr(stdscr, edit_row, bracket_col, " " * field_width)
+                stdscr.refresh()
+                try:
+                    value = stdscr.getstr(edit_row, bracket_col, field_width).decode('utf-8').strip()
+                    if value:
+                        disk.vg_name = value
+                except:
+                    pass
+                curses.noecho()
+                curses.curs_set(0)
+            
+            elif self.selected_line == 4 and disk.lvm:  # LV Name
+                bracket_col = 20
+                field_width = 30
+                layout_mode = get_layout_mode(height)
+                if layout_mode == 'compact':
+                    base_row = 6
+                elif layout_mode == 'normal':
+                    base_row = 9
+                else:
+                    base_row = 13
+                edit_row = base_row + self.selected_line
+                
+                curses.echo()
+                curses.curs_set(1)
+                safe_addstr(stdscr, edit_row, bracket_col, " " * field_width)
+                stdscr.refresh()
+                try:
+                    value = stdscr.getstr(edit_row, bracket_col, field_width).decode('utf-8').strip()
+                    if value:
+                        disk.lv_name = value
+                except:
+                    pass
+                curses.noecho()
+                curses.curs_set(0)
+            
+            elif self.selected_line == 5 and disk.lvm:  # ZFS toggle
+                disk.zfs = not disk.zfs
+                if disk.zfs:
+                    disk.filesystem = "zfs"  # Set filesystem to ZFS
+            
+            elif self.selected_line == 6 and not disk.zfs:  # Filesystem
+                # Show filesystem selection menu
+                fs_options = ["ext4", "xfs", "btrfs", "f2fs"]
+                current_idx = fs_options.index(disk.filesystem) if disk.filesystem in fs_options else 0
+                
+                # Cycle through options
+                current_idx = (current_idx + 1) % len(fs_options)
+                disk.filesystem = fs_options[current_idx]
+            
+            elif self.selected_line == 7:  # Mountpoint
+                bracket_col = 20
+                field_width = 30
+                layout_mode = get_layout_mode(height)
+                if layout_mode == 'compact':
+                    base_row = 6
+                elif layout_mode == 'normal':
+                    base_row = 9
+                else:
+                    base_row = 13
+                edit_row = base_row + self.selected_line
+                
+                curses.echo()
+                curses.curs_set(1)
+                safe_addstr(stdscr, edit_row, bracket_col, " " * field_width)
+                stdscr.refresh()
+                try:
+                    value = stdscr.getstr(edit_row, bracket_col, field_width).decode('utf-8').strip()
+                    if value:
+                        disk.mountpoint = value
+                except:
+                    pass
+                curses.noecho()
+                curses.curs_set(0)
     
     def edit_environment_field(self):
         """Edit environment configuration"""
