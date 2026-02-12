@@ -22,6 +22,8 @@
     ./ollama.nix
     ./cosmic.nix
     ./awesome.nix
+    #./volumes.nix
+    #./lsyncd.nix
   ];
 
   install.system = {
