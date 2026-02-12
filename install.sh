@@ -139,6 +139,13 @@ select LOCALE_CHOICE in "en_US.UTF-8" "pt_BR.UTF-8" "Custom"; do
     if [ -n "$LOCALE_CHOICE" ]; then break; fi
 done
 
+# Determine legacy locale value for module compatibility
+if [[ "$LOCALE_CHOICE" == "pt_BR.UTF-8" ]]; then
+    LOCALE_LEGACY="br"
+else
+    LOCALE_LEGACY="us"
+fi
+
 echo -e "\nSelect your KEYMAP:"
 select KEYMAP in "us" "br-abnt2" "uk" "de" "fr" "es" "Custom"; do
     if [ "$KEYMAP" == "Custom" ]; then
@@ -199,48 +206,25 @@ CONFIG_FILE="$REPO_DIR/configuration.nix"
 
 log_step "Applying settings to Nix files..."
 
-# Update vars.nix
-sed -i "/desktop = lib.mkOption/,/default =/ s/default = \".*\";/default = \"$DESKTOP\";/" "$VARS_FILE"
-sed -i "/graphic = lib.mkOption/,/default =/ s/default = \".*\";/default = \"$GUI\";/" "$VARS_FILE"
-sed -i "/video = lib.mkOption/,/default =/ s/default = \".*\";/default = \"$GPU\";/" "$VARS_FILE"
-sed -i "/ollama = lib.mkOption/,/default =/ s/default = \".*\";/default = \"$AI_VAL\";/" "$VARS_FILE"
-
-# Update base.nix - system settings
+# Update install.system block in base.nix with all configuration values
+sed -i "s/hostname = \".*\";/hostname = \"$HOSTNAME\";/" "$BASE_FILE"
+sed -i "s/username = \".*\";/username = \"$USERNAME\";/" "$BASE_FILE"
 sed -i "s/video = \".*\";/video = \"$GPU\";/" "$BASE_FILE"
 sed -i "s/graphic = \".*\";/graphic = \"$GUI\";/" "$BASE_FILE"
 sed -i "s/desktop = \".*\";/desktop = \"$DESKTOP\";/" "$BASE_FILE"
+sed -i "s/locale = \".*\";/locale = \"$LOCALE_LEGACY\";/" "$BASE_FILE"
+sed -i "s/localeCode = \".*\";/localeCode = \"$LOCALE_CHOICE\";/" "$BASE_FILE"
+sed -i "s|timezone = \".*\";|timezone = \"$TIMEZONE\";|" "$BASE_FILE"
+sed -i "s/keymap = \".*\";/keymap = \"$KEYMAP\";/" "$BASE_FILE"
+sed -i "s/xkbLayout = \".*\";/xkbLayout = \"$X11_LAYOUT\";/" "$BASE_FILE"
+sed -i "s/xkbVariant = \".*\";/xkbVariant = \"$X11_VARIANT\";/" "$BASE_FILE"
 sed -i "s/ollama = \".*\";/ollama = \"$AI_VAL\";/" "$BASE_FILE"
-sed -i "s/@USERNAME@/$USERNAME/g" "$BASE_FILE"
+sed -i "s/docker = \".*\";/docker = \"$DOCKER_VAL\";/" "$BASE_FILE"
 
-# Update base.nix - locale settings
-sed -i "s|time.timeZone = \".*\";|time.timeZone = \"$TIMEZONE\";|" "$BASE_FILE"
-sed -i "s|i18n.defaultLocale = \".*\";|i18n.defaultLocale = \"$LOCALE_CHOICE\";|" "$BASE_FILE"
-sed -i "s|console.keyMap = \".*\";|console.keyMap = \"$KEYMAP\";|" "$BASE_FILE"
-sed -i "s|layout = \".*\";|layout = \"$X11_LAYOUT\";|" "$BASE_FILE"
-sed -i "s|variant = \".*\";|variant = \"$X11_VARIANT\";|" "$BASE_FILE"
-
-# Update base.nix - Docker conditional
-if [ "$DOCKER_VAL" == "N" ]; then
-    # Comment out Docker-related configurations
-    sed -i 's/^  virtualisation.docker.enable = true;/  # virtualisation.docker.enable = true;/' "$BASE_FILE"
-    sed -i 's/^  virtualisation.docker.daemon.settings/  # virtualisation.docker.daemon.settings/' "$BASE_FILE"
-    sed -i 's/^    data-root = "\/data\/docker";/    # data-root = "\/data\/docker";/' "$BASE_FILE"
-    sed -i 's/^  };/  # };/' "$BASE_FILE"
-    sed -i '/fileSystems."\/var\/lib\/docker"/,/};/s/^/  # /' "$BASE_FILE"
-fi
-
-# Update user.nix
+# Update user.nix with username replacement (keeping @USERNAME@ for other references)
 sed -i "s/@USERNAME@/$USERNAME/g" "$USER_FILE"
 sed -i "s/@PASSWORD@/$USER_PASSWORD/g" "$USER_FILE"
 sed -i "s/@FULLNAME@/$FULLNAME/g" "$USER_FILE"
-
-# Update configuration.nix - hostname
-if grep -q "networking.hostName" "$CONFIG_FILE"; then
-    sed -i "s/networking.hostName = \".*\";/networking.hostName = \"$HOSTNAME\";/" "$CONFIG_FILE"
-else
-    # Insert before the last closing brace if not found
-    sed -i "/^}/i \  networking.hostName = \"$HOSTNAME\";" "$CONFIG_FILE"
-fi
 
 # 7. Create root password configuration script
 log_step "Configuring root password..."
@@ -261,16 +245,21 @@ rm /mnt/root-password-setup.sh
 
 log_success "NixOS installed successfully! You can now reboot."
 echo ""
-echo -e "${GREEN}System Summary:${NC}"
-echo "  Hostname: $HOSTNAME"
-echo "  User: $USERNAME"
-echo "  Timezone: $TIMEZONE"
-echo "  Locale: $LOCALE_CHOICE"
-echo "  Keymap: $KEYMAP"
-echo "  GPU: $GPU"
-echo "  Desktop: $DESKTOP"
-echo "  Docker: $DOCKER_OPT"
-echo "  Ollama: $AI_OPT"
+echo -e "${GREEN}╔════════════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}║          SYSTEM CONFIGURATION SUMMARY          ║${NC}"
+echo -e "${GREEN}╠════════════════════════════════════════════════╣${NC}"
+echo -e "${GREEN}║${NC} Hostname:    ${CYAN}$HOSTNAME${NC}"
+echo -e "${GREEN}║${NC} Username:    ${CYAN}$USERNAME${NC}"
+echo -e "${GREEN}║${NC} Timezone:    ${CYAN}$TIMEZONE${NC}"
+echo -e "${GREEN}║${NC} Locale:      ${CYAN}$LOCALE_CHOICE${NC}"
+echo -e "${GREEN}║${NC} Keymap:      ${CYAN}$KEYMAP${NC}"
+echo -e "${GREEN}║${NC} X11 Layout:  ${CYAN}$X11_LAYOUT ($X11_VARIANT)${NC}"
+echo -e "${GREEN}║${NC} GPU:         ${CYAN}$GPU${NC}"
+echo -e "${GREEN}║${NC} Graphics:    ${CYAN}$GUI${NC}"
+echo -e "${GREEN}║${NC} Desktop:     ${CYAN}$DESKTOP${NC}"
+echo -e "${GREEN}║${NC} Docker:      ${CYAN}$DOCKER_OPT${NC}"
+echo -e "${GREEN}║${NC} Ollama:      ${CYAN}$AI_OPT${NC}"
+echo -e "${GREEN}╚════════════════════════════════════════════════╝${NC}"
 echo ""
 read -p "Press Enter to reboot or Ctrl+C to stay in live environment..."
 reboot

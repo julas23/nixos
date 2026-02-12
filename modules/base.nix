@@ -26,56 +26,100 @@
     #./lsyncd.nix
   ];
 
+  # ============================================================
+  # SYSTEM CONFIGURATION INDEX
+  # This block serves as a centralized declaration and index
+  # of all system settings applied during installation.
+  # Values are updated by install.sh based on user choices.
+  # ============================================================
   install.system = {
+    # System Identity
+    hostname = "nixos";
+    
+    # User Configuration
+    user = "user";
+    username = "user";
+    
+    # Hardware Configuration
     video = "amdgpu";
+    
+    # Graphics Configuration
     graphic = "wayland";
     desktop = "cosmic";
-    user = "user";
-    locale = "us";
+    
+    # Locale and Regional Settings
+    locale = "us";              # Legacy locale profile
+    localeCode = "en_US.UTF-8"; # Full locale specification
+    timezone = "America/Miami";
+    
+    # Keyboard Configuration
+    keymap = "us";              # Console keymap
+    xkbLayout = "us";           # X11/Wayland layout
+    xkbVariant = "alt-intl";    # X11/Wayland variant
+    
+    # Optional Services
     ollama = "N";
+    docker = "Y";
   };
 
-  # Timezone Configuration
-  time.timeZone = "America/Miami";
+  # ============================================================
+  # TIMEZONE CONFIGURATION
+  # ============================================================
+  time.timeZone = config.install.system.timezone;
 
-  # Locale Configuration
-  i18n.defaultLocale = "en_US.UTF-8";
+  # ============================================================
+  # LOCALE CONFIGURATION
+  # ============================================================
+  i18n.defaultLocale = config.install.system.localeCode;
   i18n.extraLocaleSettings = {
-    LC_ADDRESS = "en_US.UTF-8";
-    LC_IDENTIFICATION = "en_US.UTF-8";
-    LC_MEASUREMENT = "en_US.UTF-8";
-    LC_MONETARY = "en_US.UTF-8";
-    LC_NAME = "en_US.UTF-8";
-    LC_NUMERIC = "en_US.UTF-8";
-    LC_PAPER = "en_US.UTF-8";
-    LC_TELEPHONE = "en_US.UTF-8";
-    LC_TIME = "en_US.UTF-8";
+    LC_ADDRESS = config.install.system.localeCode;
+    LC_IDENTIFICATION = config.install.system.localeCode;
+    LC_MEASUREMENT = config.install.system.localeCode;
+    LC_MONETARY = config.install.system.localeCode;
+    LC_NAME = config.install.system.localeCode;
+    LC_NUMERIC = config.install.system.localeCode;
+    LC_PAPER = config.install.system.localeCode;
+    LC_TELEPHONE = config.install.system.localeCode;
+    LC_TIME = config.install.system.localeCode;
   };
 
-  # Console and X11 Keyboard Configuration
-  console.keyMap = "us";
+  # ============================================================
+  # KEYBOARD CONFIGURATION
+  # ============================================================
+  console.keyMap = config.install.system.keymap;
   services.xserver.xkb = {
-    layout = "us";
-    variant = "alt-intl";
+    layout = config.install.system.xkbLayout;
+    variant = config.install.system.xkbVariant;
   };
 
+  # ============================================================
+  # HOSTNAME CONFIGURATION
+  # ============================================================
+  networking.hostName = config.install.system.hostname;
+
+  # ============================================================
+  # SYSTEM ACTIVATION SCRIPTS
+  # ============================================================
   system.activationScripts.createDataDirs = {
     text = ''
       mkdir -p /data/docker /data/python /data/node /data/rust
-      chown -R @USERNAME@:users /data || true
+      chown -R ${config.install.system.username}:users /data || true
       chmod -R 755 /data || true
       
-      if [ -d /home/@USERNAME@ ]; then
-        echo "Ensuring ownership for /home/@USERNAME@..."
-        mkdir -p /home/@USERNAME@/.local/lib/python3.13
-        mkdir -p /home/@USERNAME@/.cargo
-        chown -R @USERNAME@:users /home/@USERNAME@
+      if [ -d /home/${config.install.system.username} ]; then
+        echo "Ensuring ownership for /home/${config.install.system.username}..."
+        mkdir -p /home/${config.install.system.username}/.local/lib/python3.13
+        mkdir -p /home/${config.install.system.username}/.cargo
+        chown -R ${config.install.system.username}:users /home/${config.install.system.username}
       fi
     '';
   };
 
   nixpkgs.config.permittedInsecurePackages = [ "openssl-1.1.1w" ];
 
+  # ============================================================
+  # BOOT CONFIGURATION
+  # ============================================================
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelPackages = pkgs.linuxPackages_latest;
@@ -94,18 +138,24 @@
     "w /sys/kernel/mm/transparent_hugepage/enabled - - - - always"
   ];
 
-# DOCKER
-  virtualisation.docker.enable = true;
-  virtualisation.docker.daemon.settings = {
+  # ============================================================
+  # DOCKER CONFIGURATION
+  # Conditionally enabled based on install.system.docker
+  # ============================================================
+  virtualisation.docker.enable = lib.mkIf (config.install.system.docker == "Y") true;
+  virtualisation.docker.daemon.settings = lib.mkIf (config.install.system.docker == "Y") {
     data-root = "/data/docker";
   };
 
-  fileSystems."/var/lib/docker" = {
+  fileSystems."/var/lib/docker" = lib.mkIf (config.install.system.docker == "Y") {
     device = "/data/docker";
     options = [ "bind" ];
     noCheck = true;
   };
 
+  # ============================================================
+  # DEVELOPMENT ENVIRONMENT MOUNTS
+  # ============================================================
   # NODEJS
   fileSystems."/usr/local/share/npm" = {
     device = "/data/node/share";
@@ -113,17 +163,20 @@
   };
 
   # PYTHON
-  fileSystems."/home/@USERNAME@/.local/lib/python3.13" = {
+  fileSystems."/home/${config.install.system.username}/.local/lib/python3.13" = {
     device = "/data/python/lib";
     options = [ "bind" "nofail" ];
   };
 
   # RUST
-  fileSystems."/home/@USERNAME@/.cargo" = {
+  fileSystems."/home/${config.install.system.username}/.cargo" = {
     device = "/data/rust";
     options = [ "bind" "nofail" ];
   };
 
+  # ============================================================
+  # HARDWARE CONFIGURATION
+  # ============================================================
   hardware.enableAllFirmware = true;
   hardware.graphics.enable = true;
   hardware.graphics.enable32Bit = true;
@@ -134,10 +187,16 @@
   hardware.logitech.wireless.enable = true;
   hardware.logitech.wireless.enableGraphical = true;
 
+  # ============================================================
+  # NIX CONFIGURATION
+  # ============================================================
   nixpkgs.config.allowUnfree = true;
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
-  nix.settings.trusted-users = [ "root" "@USERNAME@" ];
+  nix.settings.trusted-users = [ "root" config.install.system.username ];
 
+  # ============================================================
+  # NETWORKING CONFIGURATION
+  # ============================================================
   networking.networkmanager.enable = true;
   networking.networkmanager.wifi.powersave = false;
   networking.nameservers = [ "1.1.1.1" "8.8.8.8"];
@@ -148,9 +207,15 @@
     allowedUDPPorts = [ 53 67 68 ];
   };
 
+  # ============================================================
+  # SECURITY CONFIGURATION
+  # ============================================================
   security.rtkit.enable = true;
   security.polkit.enable = true;
 
+  # ============================================================
+  # SERVICES CONFIGURATION
+  # ============================================================
   services.xserver.enable = true;
   services.xserver.videoDrivers = [ "displaylink" "modesetting" ];
   services.libinput.enable = true;
@@ -164,6 +229,7 @@
   services.journald.extraConfig = '' Storage=persistent '';
   services.flatpak.enable = true;
   
+  # Audio Configuration
   services.pulseaudio.enable = false;
   services.pipewire = {
     enable = true;
@@ -172,6 +238,7 @@
     pulse.enable = true;
   };
 
+  # Network Discovery
   services.avahi = {
     enable = true;
     nssmdns4 = true;
@@ -182,13 +249,17 @@
     };
   };
 
+  # Printing
   services.printing.enable = true;
 
-  # Force D-Bus environment update on session start
+  # D-Bus Configuration
   services.xserver.displayManager.sessionCommands = ''
     ${pkgs.dbus}/bin/dbus-update-activation-environment --all
   '';
 
+  # ============================================================
+  # PROGRAMS CONFIGURATION
+  # ============================================================
   programs.adb.enable = true;
 
   programs.nix-ld.enable = true;
@@ -236,6 +307,9 @@
     xorg.libxshmfence
   ];
 
+  # ============================================================
+  # SYSTEMD USER SERVICES
+  # ============================================================
   systemd.user.services.pixel-bridge = {
     description = "Reverse Tethering for Android";
     serviceConfig = {
@@ -246,6 +320,9 @@
     wantedBy = [ "default.target" ];
   };
 
+  # ============================================================
+  # SYSTEM VERSION
+  # ============================================================
   system.stateVersion = "25.11";
 
 }
