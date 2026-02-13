@@ -17,6 +17,7 @@ in
           configurationLimit = 10;
         };
         efi.canTouchEfiVariables = true;
+        timeout = cfg.timeout;
       })
       
       (lib.mkIf (cfg.loader == "grub") {
@@ -27,11 +28,9 @@ in
           useOSProber = true;
         };
         efi.canTouchEfiVariables = true;
+        timeout = cfg.timeout;
       })
     ];
-
-    # Timeout
-    loader.timeout = cfg.timeout;
 
     # Quiet boot
     kernelParams = lib.optional cfg.quietBoot "quiet";
