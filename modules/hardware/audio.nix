@@ -24,9 +24,6 @@ in
       support32Bit = true;
     };
 
-    # ALSA
-    sound.enable = true;
-
     # Real-time audio (optional, for low-latency)
     security.rtkit.enable = true;
   };
