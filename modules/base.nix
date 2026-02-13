@@ -217,10 +217,7 @@
   # SERVICES CONFIGURATION
   # ============================================================
   services.xserver.enable = true;
-  services.xserver.videoDrivers = [
-    #"displaylink"
-    "modesetting"
-  ];
+  services.xserver.videoDrivers = [ "modesetting" ];
   services.libinput.enable = true;
   services.openssh.enable = true;
   services.fstrim.enable = true;
