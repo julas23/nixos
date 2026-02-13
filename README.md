@@ -1,36 +1,246 @@
-# Julas NixOS Configuration
+# Modular NixOS Configuration
 
-This repository contains my unified NixOS configurations for multiple devices (HP Laptop, Thinkpad, Ryzen Desktop, and AI Server).
+A clean, modular, and professional NixOS configuration system with centralized configuration management.
 
-## 🚀 Quick Installation
+## ✨ Features
 
-After booting from the NixOS Live USB, follow the steps below:
+- **Highly Modular**: Every component is in its own module
+- **Centralized Configuration**: Single source of truth in `modules/config.nix`
+- **Profile-Based**: Pre-configured profiles for different use cases
+- **Flakes Support**: Modern Nix flakes for reproducibility
+- **Conditional Activation**: Modules activate based on configuration
+- **Well-Documented**: Clear structure and documentation
 
-### 1. Connect to the Internet
-If you are using Wi-Fi, use the interactive command:
-```bash
-nmtui
+## 📁 Directory Structure
+
 ```
-*Or via direct command:*
-```bash
-nmcli device wifi connect "NETWORK_NAME" password "YOUR_PASSWORD"
+nixos/
+├── configuration.nix          # Main entry point
+├── flake.nix                  # Flakes configuration
+├── hardware-configuration.nix # Generated hardware config
+│
+├── modules/
+│   ├── config.nix            # ⭐ Centralized configuration
+│   │
+│   ├── core/                 # Core system modules
+│   │   ├── boot.nix
+│   │   ├── network.nix
+│   │   ├── nix.nix
+│   │   └── system.nix
+│   │
+│   ├── locale/               # 🌍 Regional settings
+│   │   ├── timezone.nix
+│   │   ├── i18n.nix
+│   │   ├── console.nix
+│   │   └── xkb.nix
+│   │
+│   ├── hardware/             # 🖥️ Hardware support
+│   │   ├── gpu/ (amd, nvidia, intel)
+│   │   ├── audio.nix
+│   │   ├── bluetooth.nix
+│   │   └── printing.nix
+│   │
+│   ├── graphics/             # Display servers
+│   │   ├── wayland.nix
+│   │   └── xorg.nix
+│   │
+│   ├── desktop/              # 🎨 Desktop environments
+│   │   ├── cosmic.nix
+│   │   ├── gnome.nix
+│   │   ├── hyprland.nix
+│   │   ├── i3.nix
+│   │   ├── xfce.nix
+│   │   └── awesome.nix
+│   │
+│   ├── services/             # 🔧 System services
+│   │   ├── docker.nix
+│   │   ├── ollama.nix
+│   │   └── ssh.nix
+│   │
+│   ├── storage/              # 💾 Storage management
+│   │   ├── lvm.nix
+│   │   └── zfs.nix
+│   │
+│   └── users/                # 👤 User management
+│       └── default.nix
+│
+└── profiles/                 # 📦 Pre-configured profiles
+    ├── minimal.nix
+    ├── desktop.nix
+    ├── server.nix
+    └── developer.nix
 ```
 
-### 2. Run the Installer
-Once connected, run the command below to start the automatic provisioning:
+## 🚀 Quick Start
+
+### 1. Clone the Repository
 
 ```bash
-sudo curl -L https://raw.githubusercontent.com/julas23/nixos/main/install.sh -o install.sh && chmod +x install.sh && sudo ./install.sh
+git clone https://github.com/julas23/nixos.git /etc/nixos
+cd /etc/nixos
 ```
 
-## 🛠️ What does the script do?
-1. **Partitioning**: Configures the selected disk (EFI + Root).
-2. **Cloning**: Downloads this repository to `/mnt/etc/nixos`.
-3. **Hardware**: Generates `hardware-configuration.nix` locally.
-4. **Configuration**: Prompts for your username, hostname, GPU, and desired Desktop.
-5. **Installation**: Finalizes with `nixos-install`.
+### 2. Configure Your System
 
-## 🖥️ Supported Environments
-- **Desktops**: Cosmic, Hyprland, Gnome, XFCE, Mate, i3, Awesome.
-- **Hardware**: AMDGPU, NVIDIA, Intel, VM.
-- **Services**: Docker, Ollama (AI), PostgreSQL, Stable Diffusion.
+Edit `modules/config.nix`:
+
+```nix
+system.config = {
+  system.hostname = "my-nixos";
+  
+  locale = {
+    timezone = "America/New_York";
+    language = "en_US.UTF-8";
+  };
+  
+  hardware.gpu = "amd";
+  graphics = {
+    server = "wayland";
+    desktop = "cosmic";
+  };
+  
+  user = {
+    name = "myuser";
+    fullName = "My Name";
+  };
+};
+```
+
+### 3. Build and Switch
+
+```bash
+sudo nixos-rebuild switch
+```
+
+## 📦 Using Profiles
+
+### With Flakes
+
+```bash
+sudo nixos-rebuild switch --flake .#desktop
+```
+
+### Without Flakes
+
+Uncomment in `configuration.nix`:
+
+```nix
+imports = [
+  # ...
+  ./profiles/desktop.nix
+];
+```
+
+**Available Profiles:**
+- `minimal` - Bare minimum (no GUI)
+- `desktop` - Full workstation
+- `server` - Headless server
+- `developer` - Dev environment
+
+## ⚙️ Configuration Options
+
+### System
+
+```nix
+system = {
+  hostname = "nixos";
+  stateVersion = "24.11";
+};
+```
+
+### Locale
+
+```nix
+locale = {
+  timezone = "America/Miami";
+  language = "en_US.UTF-8";
+  keyboard = {
+    console = "us";
+    layout = "us";
+    variant = "alt-intl";
+  };
+};
+```
+
+### Hardware
+
+```nix
+hardware = {
+  gpu = "amd";  # amd | nvidia | intel
+  audio.enable = true;
+  bluetooth.enable = false;
+};
+```
+
+### Graphics
+
+```nix
+graphics = {
+  server = "wayland";
+  desktop = "cosmic";
+};
+```
+
+### Services
+
+```nix
+services = {
+  docker.enable = true;
+  ollama.enable = false;
+  ssh.enable = true;
+};
+```
+
+### User
+
+```nix
+user = {
+  name = "user";
+  fullName = "User Name";
+  extraGroups = [ "wheel" "networkmanager" ];
+  sudoer = true;
+  shell = "bash";
+};
+```
+
+## 🔧 How It Works
+
+### Centralized Configuration
+
+All settings in `modules/config.nix` - single source of truth.
+
+### Conditional Activation
+
+Modules activate automatically based on configuration:
+
+```nix
+let
+  enabled = config.system.config.hardware.gpu == "amd";
+in
+{
+  config = lib.mkIf enabled {
+    # AMD configuration
+  };
+}
+```
+
+## 🛠️ Maintenance
+
+```bash
+# Update system
+sudo nixos-rebuild switch
+
+# Garbage collection
+sudo nix-collect-garbage -d
+
+# Check configuration
+sudo nixos-rebuild dry-build
+```
+
+## 📝 License
+
+MIT License
+
+## 👤 Author
+
+Created by julas23
