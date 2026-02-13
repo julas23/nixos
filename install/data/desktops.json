@@ -1,0 +1,65 @@
+[
+  {
+    "value": "cosmic",
+    "label": "COSMIC",
+    "description": "System76's modern Rust-based desktop (Wayland)",
+    "type": "DE",
+    "display_server": "wayland",
+    "difficulty": "easy",
+    "popular": true
+  },
+  {
+    "value": "gnome",
+    "label": "GNOME",
+    "description": "Modern and user-friendly desktop environment",
+    "type": "DE",
+    "display_server": "both",
+    "difficulty": "easy",
+    "popular": true
+  },
+  {
+    "value": "xfce",
+    "label": "XFCE",
+    "description": "Lightweight and traditional desktop",
+    "type": "DE",
+    "display_server": "xorg",
+    "difficulty": "easy",
+    "popular": true
+  },
+  {
+    "value": "hyprland",
+    "label": "Hyprland",
+    "description": "Dynamic tiling Wayland compositor",
+    "type": "WM",
+    "display_server": "wayland",
+    "difficulty": "advanced",
+    "popular": true
+  },
+  {
+    "value": "i3",
+    "label": "i3",
+    "description": "Tiling window manager for X11",
+    "type": "WM",
+    "display_server": "xorg",
+    "difficulty": "advanced",
+    "popular": true
+  },
+  {
+    "value": "awesome",
+    "label": "Awesome",
+    "description": "Highly configurable window manager",
+    "type": "WM",
+    "display_server": "xorg",
+    "difficulty": "advanced",
+    "popular": false
+  },
+  {
+    "value": "none",
+    "label": "None (Headless)",
+    "description": "No graphical interface (server mode)",
+    "type": "None",
+    "display_server": "none",
+    "difficulty": "easy",
+    "popular": false
+  }
+]

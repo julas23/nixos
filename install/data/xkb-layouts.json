@@ -1,0 +1,86 @@
+[
+  {
+    "value": "us",
+    "label": "US",
+    "description": "US English",
+    "variants": ["", "alt-intl", "intl", "dvorak", "colemak"],
+    "popular": true
+  },
+  {
+    "value": "gb",
+    "label": "UK",
+    "description": "United Kingdom",
+    "variants": ["", "extd", "intl"],
+    "popular": true
+  },
+  {
+    "value": "br",
+    "label": "Brazil",
+    "description": "Brazilian Portuguese",
+    "variants": ["", "nodeadkeys", "thinkpad"],
+    "popular": true
+  },
+  {
+    "value": "pt",
+    "label": "Portugal",
+    "description": "Portuguese",
+    "variants": ["", "nodeadkeys", "mac"],
+    "popular": false
+  },
+  {
+    "value": "es",
+    "label": "Spain",
+    "description": "Spanish",
+    "variants": ["", "nodeadkeys", "cat", "ast"],
+    "popular": true
+  },
+  {
+    "value": "fr",
+    "label": "France",
+    "description": "French",
+    "variants": ["", "nodeadkeys", "oss", "bepo"],
+    "popular": true
+  },
+  {
+    "value": "de",
+    "label": "Germany",
+    "description": "German",
+    "variants": ["", "nodeadkeys", "neo", "mac"],
+    "popular": true
+  },
+  {
+    "value": "it",
+    "label": "Italy",
+    "description": "Italian",
+    "variants": ["", "nodeadkeys", "mac"],
+    "popular": false
+  },
+  {
+    "value": "ru",
+    "label": "Russia",
+    "description": "Russian",
+    "variants": ["", "phonetic", "typewriter", "mac"],
+    "popular": true
+  },
+  {
+    "value": "jp",
+    "label": "Japan",
+    "description": "Japanese",
+    "variants": ["", "kana"],
+    "popular": false
+  },
+  {
+    "value": "cn",
+    "label": "China",
+    "description": "Chinese",
+    "variants": [""],
+    "popular": false
+  },
+  {
+    "value": "kr",
+    "label": "Korea",
+    "description": "Korean",
+    "variants": ["", "kr104"],
+    "popular": false
+  }
+]

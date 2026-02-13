@@ -1,0 +1,80 @@
+[
+  {
+    "value": "us",
+    "label": "US QWERTY",
+    "description": "Standard US keyboard layout",
+    "popular": true
+  },
+  {
+    "value": "uk",
+    "label": "UK QWERTY",
+    "description": "United Kingdom keyboard layout",
+    "popular": true
+  },
+  {
+    "value": "br-abnt2",
+    "label": "Brazilian ABNT2",
+    "description": "Brazilian Portuguese keyboard (ABNT2)",
+    "popular": true
+  },
+  {
+    "value": "pt-latin1",
+    "label": "Portuguese",
+    "description": "Portuguese keyboard layout",
+    "popular": false
+  },
+  {
+    "value": "es",
+    "label": "Spanish",
+    "description": "Spanish keyboard layout",
+    "popular": true
+  },
+  {
+    "value": "fr",
+    "label": "French AZERTY",
+    "description": "French keyboard layout",
+    "popular": true
+  },
+  {
+    "value": "de",
+    "label": "German QWERTZ",
+    "description": "German keyboard layout",
+    "popular": true
+  },
+  {
+    "value": "it",
+    "label": "Italian",
+    "description": "Italian keyboard layout",
+    "popular": false
+  },
+  {
+    "value": "ru",
+    "label": "Russian",
+    "description": "Russian keyboard layout",
+    "popular": true
+  },
+  {
+    "value": "jp106",
+    "label": "Japanese 106-key",
+    "description": "Japanese keyboard layout",
+    "popular": false
+  },
+  {
+    "value": "nl",
+    "label": "Dutch",
+    "description": "Dutch keyboard layout",
+    "popular": false
+  },
+  {
+    "value": "pl",
+    "label": "Polish",
+    "description": "Polish keyboard layout",
+    "popular": false
+  },
+  {
+    "value": "tr",
+    "label": "Turkish",
+    "description": "Turkish keyboard layout",
+    "popular": false
+  }
+]

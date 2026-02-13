@@ -1,0 +1,114 @@
+[
+  {
+    "value": "en_US.UTF-8",
+    "label": "English (United States)",
+    "language": "English",
+    "country": "USA",
+    "popular": true
+  },
+  {
+    "value": "en_GB.UTF-8",
+    "label": "English (United Kingdom)",
+    "language": "English",
+    "country": "UK",
+    "popular": true
+  },
+  {
+    "value": "pt_BR.UTF-8",
+    "label": "Português (Brasil)",
+    "language": "Portuguese",
+    "country": "Brazil",
+    "popular": true
+  },
+  {
+    "value": "pt_PT.UTF-8",
+    "label": "Português (Portugal)",
+    "language": "Portuguese",
+    "country": "Portugal",
+    "popular": false
+  },
+  {
+    "value": "es_ES.UTF-8",
+    "label": "Español (España)",
+    "language": "Spanish",
+    "country": "Spain",
+    "popular": true
+  },
+  {
+    "value": "es_MX.UTF-8",
+    "label": "Español (México)",
+    "language": "Spanish",
+    "country": "Mexico",
+    "popular": false
+  },
+  {
+    "value": "fr_FR.UTF-8",
+    "label": "Français (France)",
+    "language": "French",
+    "country": "France",
+    "popular": true
+  },
+  {
+    "value": "de_DE.UTF-8",
+    "label": "Deutsch (Deutschland)",
+    "language": "German",
+    "country": "Germany",
+    "popular": true
+  },
+  {
+    "value": "it_IT.UTF-8",
+    "label": "Italiano (Italia)",
+    "language": "Italian",
+    "country": "Italy",
+    "popular": false
+  },
+  {
+    "value": "ru_RU.UTF-8",
+    "label": "Русский (Россия)",
+    "language": "Russian",
+    "country": "Russia",
+    "popular": true
+  },
+  {
+    "value": "zh_CN.UTF-8",
+    "label": "中文 (中国)",
+    "language": "Chinese",
+    "country": "China",
+    "popular": true
+  },
+  {
+    "value": "ja_JP.UTF-8",
+    "label": "日本語 (日本)",
+    "language": "Japanese",
+    "country": "Japan",
+    "popular": true
+  },
+  {
+    "value": "ko_KR.UTF-8",
+    "label": "한국어 (대한민국)",
+    "language": "Korean",
+    "country": "South Korea",
+    "popular": false
+  },
+  {
+    "value": "nl_NL.UTF-8",
+    "label": "Nederlands (Nederland)",
+    "language": "Dutch",
+    "country": "Netherlands",
+    "popular": false
+  },
+  {
+    "value": "pl_PL.UTF-8",
+    "label": "Polski (Polska)",
+    "language": "Polish",
+    "country": "Poland",
+    "popular": false
+  },
+  {
+    "value": "tr_TR.UTF-8",
+    "label": "Türkçe (Türkiye)",
+    "language": "Turkish",
+    "country": "Turkey",
+    "popular": false
+  }
+]

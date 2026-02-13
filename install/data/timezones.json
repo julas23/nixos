@@ -1,0 +1,276 @@
+{
+  "Americas": [
+    {
+      "value": "America/New_York",
+      "label": "New York (EST, UTC-5)",
+      "country": "USA",
+      "popular": true
+    },
+    {
+      "value": "America/Chicago",
+      "label": "Chicago (CST, UTC-6)",
+      "country": "USA",
+      "popular": true
+    },
+    {
+      "value": "America/Denver",
+      "label": "Denver (MST, UTC-7)",
+      "country": "USA",
+      "popular": false
+    },
+    {
+      "value": "America/Los_Angeles",
+      "label": "Los Angeles (PST, UTC-8)",
+      "country": "USA",
+      "popular": true
+    },
+    {
+      "value": "America/Sao_Paulo",
+      "label": "São Paulo (BRT, UTC-3)",
+      "country": "Brazil",
+      "popular": true
+    },
+    {
+      "value": "America/Mexico_City",
+      "label": "Mexico City (CST, UTC-6)",
+      "country": "Mexico",
+      "popular": true
+    },
+    {
+      "value": "America/Toronto",
+      "label": "Toronto (EST, UTC-5)",
+      "country": "Canada",
+      "popular": true
+    },
+    {
+      "value": "America/Vancouver",
+      "label": "Vancouver (PST, UTC-8)",
+      "country": "Canada",
+      "popular": false
+    },
+    {
+      "value": "America/Buenos_Aires",
+      "label": "Buenos Aires (ART, UTC-3)",
+      "country": "Argentina",
+      "popular": false
+    },
+    {
+      "value": "America/Lima",
+      "label": "Lima (PET, UTC-5)",
+      "country": "Peru",
+      "popular": false
+    },
+    {
+      "value": "America/Bogota",
+      "label": "Bogotá (COT, UTC-5)",
+      "country": "Colombia",
+      "popular": false
+    },
+    {
+      "value": "America/Santiago",
+      "label": "Santiago (CLT, UTC-3)",
+      "country": "Chile",
+      "popular": false
+    }
+  ],
+  "Europe": [
+    {
+      "value": "Europe/London",
+      "label": "London (GMT, UTC+0)",
+      "country": "UK",
+      "popular": true
+    },
+    {
+      "value": "Europe/Paris",
+      "label": "Paris (CET, UTC+1)",
+      "country": "France",
+      "popular": true
+    },
+    {
+      "value": "Europe/Berlin",
+      "label": "Berlin (CET, UTC+1)",
+      "country": "Germany",
+      "popular": true
+    },
+    {
+      "value": "Europe/Madrid",
+      "label": "Madrid (CET, UTC+1)",
+      "country": "Spain",
+      "popular": false
+    },
+    {
+      "value": "Europe/Rome",
+      "label": "Rome (CET, UTC+1)",
+      "country": "Italy",
+      "popular": false
+    },
+    {
+      "value": "Europe/Amsterdam",
+      "label": "Amsterdam (CET, UTC+1)",
+      "country": "Netherlands",
+      "popular": false
+    },
+    {
+      "value": "Europe/Brussels",
+      "label": "Brussels (CET, UTC+1)",
+      "country": "Belgium",
+      "popular": false
+    },
+    {
+      "value": "Europe/Lisbon",
+      "label": "Lisbon (WET, UTC+0)",
+      "country": "Portugal",
+      "popular": true
+    },
+    {
+      "value": "Europe/Moscow",
+      "label": "Moscow (MSK, UTC+3)",
+      "country": "Russia",
+      "popular": true
+    },
+    {
+      "value": "Europe/Istanbul",
+      "label": "Istanbul (TRT, UTC+3)",
+      "country": "Turkey",
+      "popular": false
+    },
+    {
+      "value": "Europe/Athens",
+      "label": "Athens (EET, UTC+2)",
+      "country": "Greece",
+      "popular": false
+    },
+    {
+      "value": "Europe/Warsaw",
+      "label": "Warsaw (CET, UTC+1)",
+      "country": "Poland",
+      "popular": false
+    }
+  ],
+  "Asia": [
+    {
+      "value": "Asia/Tokyo",
+      "label": "Tokyo (JST, UTC+9)",
+      "country": "Japan",
+      "popular": true
+    },
+    {
+      "value": "Asia/Shanghai",
+      "label": "Shanghai (CST, UTC+8)",
+      "country": "China",
+      "popular": true
+    },
+    {
+      "value": "Asia/Hong_Kong",
+      "label": "Hong Kong (HKT, UTC+8)",
+      "country": "Hong Kong",
+      "popular": true
+    },
+    {
+      "value": "Asia/Singapore",
+      "label": "Singapore (SGT, UTC+8)",
+      "country": "Singapore",
+      "popular": true
+    },
+    {
+      "value": "Asia/Seoul",
+      "label": "Seoul (KST, UTC+9)",
+      "country": "South Korea",
+      "popular": true
+    },
+    {
+      "value": "Asia/Dubai",
+      "label": "Dubai (GST, UTC+4)",
+      "country": "UAE",
+      "popular": true
+    },
+    {
+      "value": "Asia/Kolkata",
+      "label": "Kolkata (IST, UTC+5:30)",
+      "country": "India",
+      "popular": true
+    },
+    {
+      "value": "Asia/Bangkok",
+      "label": "Bangkok (ICT, UTC+7)",
+      "country": "Thailand",
+      "popular": false
+    },
+    {
+      "value": "Asia/Jakarta",
+      "label": "Jakarta (WIB, UTC+7)",
+      "country": "Indonesia",
+      "popular": false
+    },
+    {
+      "value": "Asia/Manila",
+      "label": "Manila (PHT, UTC+8)",
+      "country": "Philippines",
+      "popular": false
+    },
+    {
+      "value": "Asia/Taipei",
+      "label": "Taipei (CST, UTC+8)",
+      "country": "Taiwan",
+      "popular": false
+    }
+  ],
+  "Africa": [
+    {
+      "value": "Africa/Cairo",
+      "label": "Cairo (EET, UTC+2)",
+      "country": "Egypt",
+      "popular": true
+    },
+    {
+      "value": "Africa/Johannesburg",
+      "label": "Johannesburg (SAST, UTC+2)",
+      "country": "South Africa",
+      "popular": true
+    },
+    {
+      "value": "Africa/Lagos",
+      "label": "Lagos (WAT, UTC+1)",
+      "country": "Nigeria",
+      "popular": false
+    },
+    {
+      "value": "Africa/Nairobi",
+      "label": "Nairobi (EAT, UTC+3)",
+      "country": "Kenya",
+      "popular": false
+    },
+    {
+      "value": "Africa/Casablanca",
+      "label": "Casablanca (WET, UTC+0)",
+      "country": "Morocco",
+      "popular": false
+    }
+  ],
+  "Oceania": [
+    {
+      "value": "Australia/Sydney",
+      "label": "Sydney (AEDT, UTC+11)",
+      "country": "Australia",
+      "popular": true
+    },
+    {
+      "value": "Australia/Melbourne",
+      "label": "Melbourne (AEDT, UTC+11)",
+      "country": "Australia",
+      "popular": false
+    },
+    {
+      "value": "Australia/Perth",
+      "label": "Perth (AWST, UTC+8)",
+      "country": "Australia",
+      "popular": false
+    },
+    {
+      "value": "Pacific/Auckland",
+      "label": "Auckland (NZDT, UTC+13)",
+      "country": "New Zealand",
+      "popular": true
+    }
+  ]
+}
