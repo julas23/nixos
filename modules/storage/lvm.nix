@@ -1,7 +1,7 @@
 # LVM Configuration
 # Logical Volume Manager support
 
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   cfg = config.system.config.storage.lvm;
