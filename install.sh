@@ -297,6 +297,35 @@ set_root_password() {
     done
 }
 
+# Set user password
+set_user_password() {
+    # Get username from config.nix
+    USERNAME=$(grep 'username =' /mnt/etc/nixos/modules/config.nix | sed 's/.*"\(.*\)".*/\1/')
+    
+    if [ -z "$USERNAME" ]; then
+        log_warning "No username found in configuration, skipping user password setup"
+        return
+    fi
+    
+    log_info "Setting password for user: $USERNAME"
+    
+    while true; do
+        echo ""
+        read -sp "Enter password for $USERNAME: " USER_PASS
+        echo ""
+        read -sp "Confirm password for $USERNAME: " USER_PASS_CONFIRM
+        echo ""
+        
+        if [ "$USER_PASS" == "$USER_PASS_CONFIRM" ]; then
+            echo "$USER_PASS" | nixos-enter --root /mnt -c "passwd $USERNAME" 2>/dev/null
+            log_success "Password set for user $USERNAME"
+            break
+        else
+            log_error "Passwords do not match. Please try again."
+        fi
+    done
+}
+
 # Show completion message
 show_completion() {
     echo ""
@@ -351,6 +380,7 @@ main() {
     # Installation
     install_nixos
     set_root_password
+    set_user_password
     
     # Complete
     show_completion
