@@ -9,8 +9,8 @@ in
 
 {
   config = lib.mkIf cfg.enable {
-    # Enable LVM
-    boot.initrd.lvm.enable = true;
+    # Enable LVM in initrd
+    boot.initrd.services.lvm.enable = true;
 
     # LVM tools
     environment.systemPackages = with pkgs; [
