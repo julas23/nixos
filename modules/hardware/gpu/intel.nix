@@ -12,11 +12,10 @@ in
     # Intel GPU drivers
     services.xserver.videoDrivers = [ "intel" ];
 
-    # OpenGL/Vulkan support
-    hardware.opengl = {
+    # Graphics support
+    hardware.graphics = {
       enable = true;
-      driSupport = true;
-      driSupport32Bit = true;
+      enable32Bit = true;
       
       extraPackages = with pkgs; [
         intel-media-driver  # LIBVA_DRIVER_NAME=iHD
