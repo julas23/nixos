@@ -18,13 +18,10 @@ in
       enable32Bit = true;
       
       extraPackages = with pkgs; [
-        amdvlk
+        # RADV (Mesa) is now the default Vulkan driver for AMD
+        # amdvlk has been deprecated and removed
         rocm-opencl-icd
         rocm-opencl-runtime
-      ];
-      
-      extraPackages32 = with pkgs; [
-        driversi686Linux.amdvlk
       ];
     };
 
