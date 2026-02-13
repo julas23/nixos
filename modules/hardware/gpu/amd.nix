@@ -13,21 +13,10 @@ in
     services.xserver.videoDrivers = [ "amdgpu" ];
 
     # Graphics support
+    # RADV (Mesa) is the default Vulkan driver for AMD GPUs
     hardware.graphics = {
       enable = true;
       enable32Bit = true;
-      
-      extraPackages = with pkgs; [
-        # RADV (Mesa) is now the default Vulkan driver for AMD
-        # amdvlk has been deprecated and removed
-        rocm-opencl-icd
-        rocm-opencl-runtime
-      ];
     };
-
-    # ROCm support (for compute)
-    systemd.tmpfiles.rules = [
-      "L+    /opt/rocm/hip   -    -    -     -    ${pkgs.rocmPackages.clr}"
-    ];
   };
 }
