@@ -1,0 +1,34 @@
+[
+  {
+    "value": "amd",
+    "label": "AMD",
+    "description": "AMD Radeon graphics (AMDGPU driver)",
+    "driver": "amdgpu",
+    "detection_keywords": ["amd", "radeon", "rx ", "vega", "navi"],
+    "popular": true
+  },
+  {
+    "value": "nvidia",
+    "label": "NVIDIA",
+    "description": "NVIDIA graphics (proprietary driver)",
+    "driver": "nvidia",
+    "detection_keywords": ["nvidia", "geforce", "gtx", "rtx", "quadro"],
+    "popular": true
+  },
+  {
+    "value": "intel",
+    "label": "Intel",
+    "description": "Intel integrated graphics",
+    "driver": "intel",
+    "detection_keywords": ["intel", "uhd graphics", "iris", "hd graphics"],
+    "popular": true
+  },
+  {
+    "value": "none",
+    "label": "None / VM",
+    "description": "Virtual machine or no dedicated GPU",
+    "driver": "none",
+    "detection_keywords": ["virtio", "vmware", "virtualbox", "qxl"],
+    "popular": false
+  }
+]
