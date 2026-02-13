@@ -33,11 +33,13 @@
     ./modules/graphics/xorg.nix
     
     # Desktop modules
-    ./modules/desktop/cosmic.nix
+    ./modules/desktop/plasma.nix
     ./modules/desktop/gnome.nix
+    ./modules/desktop/cosmic.nix
+    ./modules/desktop/xfce.nix
+    ./modules/desktop/mate.nix
     ./modules/desktop/hyprland.nix
     ./modules/desktop/i3.nix
-    ./modules/desktop/xfce.nix
     ./modules/desktop/awesome.nix
     
     # Services modules

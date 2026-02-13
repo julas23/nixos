@@ -1,10 +1,10 @@
 [
   {
-    "value": "cosmic",
-    "label": "COSMIC",
-    "description": "System76's modern Rust-based desktop (Wayland)",
+    "value": "plasma",
+    "label": "KDE Plasma",
+    "description": "Feature-rich and highly customizable desktop (X11/Wayland)",
     "type": "DE",
-    "display_server": "wayland",
+    "display_server": "both",
     "difficulty": "easy",
     "popular": true
   },
@@ -18,9 +18,27 @@
     "popular": true
   },
   {
+    "value": "cosmic",
+    "label": "COSMIC",
+    "description": "System76's modern Rust-based desktop (Wayland)",
+    "type": "DE",
+    "display_server": "wayland",
+    "difficulty": "easy",
+    "popular": true
+  },
+  {
     "value": "xfce",
     "label": "XFCE",
     "description": "Lightweight and traditional desktop",
+    "type": "DE",
+    "display_server": "xorg",
+    "difficulty": "easy",
+    "popular": true
+  },
+  {
+    "value": "mate",
+    "label": "MATE",
+    "description": "Traditional desktop forked from GNOME 2 (lightweight)",
     "type": "DE",
     "display_server": "xorg",
     "difficulty": "easy",
