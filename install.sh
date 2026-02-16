@@ -246,7 +246,20 @@ update_volumes_uuids() {
     log_info "Updating volumes.nix with detected UUIDs..."
     
     # Extract UUIDs from hardware-configuration.nix (excluding root and boot partitions)
-    UUIDS=($(grep -oP 'device = "/dev/disk/by-uuid/\K[^"]+' /mnt/etc/nixos/hardware-configuration.nix | grep -v "$(findmnt -n -o UUID /mnt)" | grep -v "$(findmnt -n -o UUID /mnt/boot)"))
+    # Get root and boot UUIDs first
+    ROOT_UUID=$(findmnt -n -o UUID /mnt 2>/dev/null || echo "")
+    BOOT_UUID=$(findmnt -n -o UUID /mnt/boot 2>/dev/null || echo "")
+    
+    # Extract all UUIDs from hardware-configuration.nix
+    ALL_UUIDS=($(grep -oP 'device = "/dev/disk/by-uuid/\K[^"]+' /mnt/etc/nixos/hardware-configuration.nix 2>/dev/null || echo ""))
+    
+    # Filter out root and boot UUIDs
+    UUIDS=()
+    for uuid in "${ALL_UUIDS[@]}"; do
+        if [ "$uuid" != "$ROOT_UUID" ] && [ "$uuid" != "$BOOT_UUID" ] && [ -n "$uuid" ]; then
+            UUIDS+=("$uuid")
+        fi
+    done
     
     NUM_VOLUMES=${#UUIDS[@]}
     
