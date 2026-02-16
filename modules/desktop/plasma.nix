@@ -5,7 +5,7 @@
 { config, lib, pkgs, ... }:
 
 let
-  enabled = config.system.config.desktop.environment == "plasma";
+  enabled = config.system.config.graphics.desktop == "plasma";
 in
 
 {
