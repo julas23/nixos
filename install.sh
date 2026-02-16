@@ -300,7 +300,7 @@ set_root_password() {
 # Set user password
 set_user_password() {
     # Get username from config.nix
-    USERNAME=$(grep 'username =' /mnt/etc/nixos/modules/config.nix | sed 's/.*"\(.*\)".*/\1/')
+    USERNAME=$(awk '/user = \{/,/\}/ {if (/name =/) print}' /mnt/etc/nixos/modules/config.nix | sed 's/.*"\(.*\)".*/\1/')
     
     if [ -z "$USERNAME" ]; then
         log_warning "No username found in configuration, skipping user password setup"
