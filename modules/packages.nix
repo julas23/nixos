@@ -15,12 +15,6 @@ in
   environment.systemPackages = with pkgs; [
 
     #### 1. INTERNET & BROWSERS
-    chromium
-    transmission_4-gtk
-    brave
-    firefox
-    librewolf
-    ferdium
     (chromium.override {
       commandLineArgs = [
         "--disable-gpu"
@@ -28,6 +22,11 @@ in
         "--ozone-platform=x11"
       ];
     })
+    transmission_4-gtk
+    brave
+    firefox
+    librewolf
+    ferdium
 
     #### 2. DEVELOPMENT & CLOUD
     vscode
@@ -69,7 +68,7 @@ in
     ardour
     audacity
     hydrogen
-    muse
+    muse-sequencer
     musescore
     rhythmbox
     obs-studio
@@ -151,7 +150,6 @@ in
     whois
     
     #### 7. ADDITIONAL TOOLS
-    cosmic-edit
     waydroid
   ];
 
