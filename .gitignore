@@ -1,0 +1,27 @@
+# NixOS generated files
+hardware-configuration.nix
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+result
+result-*
+
+# Temporary files
+*.tmp
+*.bak

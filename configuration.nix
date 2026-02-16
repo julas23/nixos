@@ -46,12 +46,12 @@
     ./modules/services/docker.nix
     ./modules/services/ollama.nix
     ./modules/services/ssh.nix
-    ./modules/services/lsyncd.nix
+    # ./modules/services/lsyncd.nix  # User-specific, see .old/lsyncd.nix
     
     # Storage modules
     ./modules/storage/lvm.nix
     ./modules/storage/zfs.nix
-    ./modules/storage/volumes.nix
+    # ./modules/storage/volumes.nix  # User-specific, see .old/volumes.nix
     
     # Users module
     ./modules/users/default.nix
