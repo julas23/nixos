@@ -1,5 +1,7 @@
 # NixOS generated files
 hardware-configuration.nix
+flake.nix
+flake.lock
 
 # Python cache
 __pycache__/
