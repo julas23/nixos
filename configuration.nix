@@ -57,6 +57,9 @@
     ./modules/users/default.nix
     ./modules/users/groups.nix
     
+    # System packages
+    ./modules/packages.nix
+    
     # Profile (optional, uncomment one)
     # ./profiles/minimal.nix
     # ./profiles/desktop.nix
