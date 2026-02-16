@@ -238,6 +238,111 @@ generate_hardware_config() {
     fi
 }
 
+# Update volumes.nix with detected UUIDs
+update_volumes_uuids() {
+    log_info "Updating volumes.nix with detected UUIDs..."
+    
+    # Extract UUIDs from hardware-configuration.nix (excluding root and boot partitions)
+    UUIDS=($(grep -oP 'device = "/dev/disk/by-uuid/\K[^"]+' /mnt/etc/nixos/hardware-configuration.nix | grep -v "$(findmnt -n -o UUID /mnt)" | grep -v "$(findmnt -n -o UUID /mnt/boot)"))
+    
+    NUM_VOLUMES=${#UUIDS[@]}
+    
+    if [ $NUM_VOLUMES -eq 0 ]; then
+        log_info "No additional volumes detected, skipping volumes.nix update"
+        return
+    fi
+    
+    log_info "Detected $NUM_VOLUMES additional volume(s)"
+    
+    # Generate volumes.nix content based on number of detected volumes
+    cat > /mnt/etc/nixos/modules/storage/volumes.nix << 'VOLUMES_HEADER'
+# Volume Management Configuration
+# Additional volume mounts and bind mounts for data directories
+# Auto-generated based on detected hardware
+
+{ config, lib, pkgs, ... }:
+
+let
+  cfg = config.system.config.storage;
+  username = config.system.config.user.name;
+in
+
+{
+  # External volume mounts
+  # These are mounted by UUID for reliability across reboots
+  
+VOLUMES_HEADER
+
+    # Add volume entries dynamically
+    MOUNT_NAMES=("DOCK" "NVME" "EXTRA1" "EXTRA2" "EXTRA3" "EXTRA4")
+    for i in "${!UUIDS[@]}"; do
+        MOUNT_NAME="${MOUNT_NAMES[$i]}"
+        UUID="${UUIDS[$i]}"
+        cat >> /mnt/etc/nixos/modules/storage/volumes.nix << VOLUME_ENTRY
+  fileSystems."/mnt/$MOUNT_NAME" = {
+    device = "/dev/disk/by-uuid/$UUID";
+    fsType = "ext4";
+    options = [ "defaults" "nofail" ]; 
+  };
+
+VOLUME_ENTRY
+    done
+
+    # Add bind mounts footer
+    cat >> /mnt/etc/nixos/modules/storage/volumes.nix << 'VOLUMES_FOOTER'
+  # Bind mounts for development environments
+  # These allow persistent data storage across NixOS rebuilds
+  
+  # Docker data directory
+  fileSystems."/var/lib/docker" = {
+    device = "/data/docker";
+    options = [ "bind" ];
+    noCheck = true;
+  };
+
+  # Node.js global packages
+  fileSystems."/usr/local/share/npm" = {
+    device = "/data/node/share";
+    options = [ "bind" "nofail" ];
+  };
+
+  # Python user packages
+  fileSystems."/home/${username}/.local/lib/python3.13" = {
+    device = "/data/python/lib";
+    options = [ "bind" "nofail" ];
+  };
+
+  # Rust cargo directory
+  fileSystems."/home/${username}/.cargo" = {
+    device = "/data/rust";
+    options = [ "bind" "nofail" ];
+  };
+
+  # System activation script to ensure data directories exist
+  # This runs on every boot and nixos-rebuild
+  system.activationScripts.createDataDirs = {
+    text = ''
+      # Ensure /data exists and is owned by the user
+      mkdir -p /data/docker /data/python /data/node /data/rust
+      chown -R ${username}:users /data || true
+      chmod -R 755 /data || true
+      
+      # Fix home directory and .local ownership to prevent root-lockout
+      # This is critical because of the Python/Rust bind-mounts
+      if [ -d /home/${username} ]; then
+        echo "Ensuring ownership for /home/${username}..."
+        mkdir -p /home/${username}/.local/lib/python3.13
+        mkdir -p /home/${username}/.cargo
+        chown -R ${username}:users /home/${username}
+      fi
+    '';
+  };
+}
+VOLUMES_FOOTER
+
+    log_success "volumes.nix updated with $NUM_VOLUMES volume(s)"
+}
+
 # Run interactive configurator
 run_configurator() {
     log_info "Starting interactive configuration wizard..."
@@ -388,6 +493,7 @@ main() {
     # Configuration
     clone_repository
     generate_hardware_config
+    update_volumes_uuids
     run_configurator
     
     # Installation
