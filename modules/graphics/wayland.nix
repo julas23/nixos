@@ -11,7 +11,7 @@ in
   config = lib.mkIf enabled {
     # Enable Wayland support in X server (for compatibility)
     services.xserver.enable = true;
-    services.xserver.displayManager.gdm.wayland = true;
+    services.displayManager.gdm.wayland = true;
 
     # Wayland-specific packages
     environment.systemPackages = with pkgs; [
