@@ -220,8 +220,8 @@ clone_repository() {
     # Remove old config if exists
     rm -rf /mnt/etc/nixos
     
-    # Clone repository
-    git clone -b refactor/modular-architecture https://github.com/julas23/nixos.git /mnt/etc/nixos
+    # Clone repository from main branch
+    git clone -b main https://github.com/julas23/nixos.git /mnt/etc/nixos
     
     log_success "Repository cloned to /mnt/etc/nixos"
 }
