@@ -68,7 +68,7 @@ in
     ardour
     audacity
     hydrogen
-    muse-sequencer
+    muse
     musescore
     rhythmbox
     obs-studio
