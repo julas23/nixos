@@ -288,7 +288,17 @@ set_root_password() {
         echo ""
         
         if [ "$ROOT_PASS" == "$ROOT_PASS_CONFIRM" ]; then
-            echo "$ROOT_PASS" | nixos-enter --root /mnt -c "passwd root" 2>/dev/null
+            # Create password setup script
+            cat > /mnt/tmp/set-root-password.sh << EOF
+#!/usr/bin/env bash
+echo "root:$ROOT_PASS" | chpasswd
+EOF
+            chmod +x /mnt/tmp/set-root-password.sh
+            
+            # Execute script inside the new system
+            nixos-enter --root /mnt -c "/tmp/set-root-password.sh"
+            rm /mnt/tmp/set-root-password.sh
+            
             log_success "Root password set"
             break
         else
@@ -317,7 +327,17 @@ set_user_password() {
         echo ""
         
         if [ "$USER_PASS" == "$USER_PASS_CONFIRM" ]; then
-            echo "$USER_PASS" | nixos-enter --root /mnt -c "passwd $USERNAME" 2>/dev/null
+            # Create password setup script
+            cat > /mnt/tmp/set-user-password.sh << EOF
+#!/usr/bin/env bash
+echo "$USERNAME:$USER_PASS" | chpasswd
+EOF
+            chmod +x /mnt/tmp/set-user-password.sh
+            
+            # Execute script inside the new system
+            nixos-enter --root /mnt -c "/tmp/set-user-password.sh"
+            rm /mnt/tmp/set-user-password.sh
+            
             log_success "Password set for user $USERNAME"
             break
         else
