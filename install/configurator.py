@@ -424,6 +424,21 @@ class Configurator:
             default="User"
         )
         
+        # Get user password
+        import getpass
+        while True:
+            password = getpass.getpass("Enter user password: ")
+            password_confirm = getpass.getpass("Confirm user password: ")
+            
+            if password == password_confirm:
+                if len(password) < 1:
+                    print("Password cannot be empty. Please try again.")
+                    continue
+                self.choices["user_password"] = password
+                break
+            else:
+                print("Passwords do not match. Please try again.")
+        
         self.choices["user_sudoer"] = self.yes_no("Add user to sudoers?", default=True)
         
         if self.choices["user_sudoer"]:

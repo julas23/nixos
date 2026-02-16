@@ -309,41 +309,34 @@ EOF
 
 # Set user password
 set_user_password() {
-    # Get username from config.nix
+    # Get username and password from config.nix
     USERNAME=$(awk '/user = \{/,/\}/ {if (/name =/) print}' /mnt/etc/nixos/modules/config.nix | sed 's/.*"\(.*\)".*/\1/')
+    USER_PASS=$(awk '/user = \{/,/\}/ {if (/_password =/) print}' /mnt/etc/nixos/modules/config.nix | sed 's/.*"\(.*\)".*/\1/')
     
     if [ -z "$USERNAME" ]; then
         log_warning "No username found in configuration, skipping user password setup"
         return
     fi
     
+    if [ -z "$USER_PASS" ]; then
+        log_warning "No password found in configuration, skipping user password setup"
+        return
+    fi
+    
     log_info "Setting password for user: $USERNAME"
     
-    while true; do
-        echo ""
-        read -sp "Enter password for $USERNAME: " USER_PASS
-        echo ""
-        read -sp "Confirm password for $USERNAME: " USER_PASS_CONFIRM
-        echo ""
-        
-        if [ "$USER_PASS" == "$USER_PASS_CONFIRM" ]; then
-            # Create password setup script
-            cat > /mnt/tmp/set-user-password.sh << EOF
+    # Create password setup script
+    cat > /mnt/tmp/set-user-password.sh << EOF
 #!/usr/bin/env bash
 echo "$USERNAME:$USER_PASS" | chpasswd
 EOF
-            chmod +x /mnt/tmp/set-user-password.sh
-            
-            # Execute script inside the new system
-            nixos-enter --root /mnt -c "/tmp/set-user-password.sh"
-            rm /mnt/tmp/set-user-password.sh
-            
-            log_success "Password set for user $USERNAME"
-            break
-        else
-            log_error "Passwords do not match. Please try again."
-        fi
-    done
+    chmod +x /mnt/tmp/set-user-password.sh
+    
+    # Execute script inside the new system
+    nixos-enter --root /mnt -c "/tmp/set-user-password.sh"
+    rm /mnt/tmp/set-user-password.sh
+    
+    log_success "Password set for user $USERNAME"
 }
 
 # Show completion message

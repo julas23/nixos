@@ -125,7 +125,9 @@ def generate_config_nix(choices: Dict[str, Any], output_path: str = None) -> str
             "extraGroups": choices.get("user_groups", ["wheel", "networkmanager"]),
             "sudoer": choices.get("user_sudoer", True),
             "nopasswd": choices.get("user_nopasswd", False),
-            "shell": choices.get("user_shell", "bash")
+            "shell": choices.get("user_shell", "bash"),
+            # Password is stored separately and handled by install.sh
+            "_password": choices.get("user_password", "")
         },
         "network": {
             "networkmanager": {
