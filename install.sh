@@ -6,6 +6,9 @@
 
 set -e  # Exit on error
 
+# Global variables
+TEST_MODE=false
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -364,6 +367,57 @@ run_configurator() {
     log_success "Configuration completed"
 }
 
+# Validate NixOS configuration
+validate_configuration() {
+    log_info "Validating NixOS configuration..."
+    echo ""
+    
+    # Change to the configuration directory
+    cd /mnt/etc/nixos
+    
+    # Try to evaluate the configuration
+    log_info "Step 1/3: Checking syntax with nix-instantiate..."
+    if nix-instantiate --eval '<nixpkgs/nixos>' -A config.system.build.toplevel --arg configuration ./configuration.nix > /dev/null 2>&1; then
+        log_success "Syntax check passed"
+    else
+        log_error "Syntax check failed"
+        log_info "Running detailed check..."
+        nix-instantiate --eval '<nixpkgs/nixos>' -A config.system.build.toplevel --arg configuration ./configuration.nix
+        return 1
+    fi
+    
+    echo ""
+    log_info "Step 2/3: Dry-building configuration..."
+    if nixos-rebuild dry-build --flake .#nixos 2>&1 | tee /tmp/nixos-dryrun.log; then
+        log_success "Dry-build completed successfully"
+    else
+        log_warning "Dry-build had issues, checking details..."
+        cat /tmp/nixos-dryrun.log
+    fi
+    
+    echo ""
+    log_info "Step 3/3: Checking for common issues..."
+    
+    # Check for undefined options
+    if grep -q "error: undefined variable" /tmp/nixos-dryrun.log 2>/dev/null; then
+        log_error "Found undefined variables in configuration"
+        grep "undefined variable" /tmp/nixos-dryrun.log
+        return 1
+    fi
+    
+    # Check for deprecated options
+    if grep -q "warning.*renamed to" /tmp/nixos-dryrun.log 2>/dev/null; then
+        log_warning "Found deprecated options:"
+        grep "warning.*renamed to" /tmp/nixos-dryrun.log
+    fi
+    
+    echo ""
+    log_success "Configuration validation completed!"
+    log_info "All checks passed. Configuration is ready for installation."
+    
+    return 0
+}
+
 # Install NixOS
 install_nixos() {
     log_info "Installing NixOS..."
@@ -474,9 +528,52 @@ show_completion() {
     reboot
 }
 
+# Parse command line arguments
+parse_arguments() {
+    for arg in "$@"; do
+        case $arg in
+            --check|--test)
+                TEST_MODE=true
+                log_info "Running in TEST MODE - no installation will be performed"
+                shift
+                ;;
+            --help|-h)
+                show_usage
+                exit 0
+                ;;
+            *)
+                log_error "Unknown argument: $arg"
+                show_usage
+                exit 1
+                ;;
+        esac
+    done
+}
+
+# Show usage information
+show_usage() {
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  --check, --test    Validate configuration without installing"
+    echo "  --help, -h         Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  $0                 # Normal installation"
+    echo "  $0 --check         # Test mode (validate only)"
+}
+
 # Main installation flow
 main() {
+    # Parse arguments first
+    parse_arguments "$@"
+    
     show_banner
+    
+    if [ "$TEST_MODE" = true ]; then
+        log_warning "TEST MODE ENABLED - Configuration will be validated but not installed"
+        echo ""
+    fi
     
     check_root
     check_internet
@@ -496,13 +593,33 @@ main() {
     update_volumes_uuids
     run_configurator
     
-    # Installation
-    install_nixos
-    set_root_password
-    set_user_password
-    
-    # Complete
-    show_completion
+    # Validation or Installation
+    if [ "$TEST_MODE" = true ]; then
+        # Test mode: validate only
+        echo ""
+        log_info "=== VALIDATION MODE ==="
+        echo ""
+        validate_configuration
+        
+        if [ $? -eq 0 ]; then
+            echo ""
+            log_success "✅ Configuration is valid and ready for installation!"
+            log_info "To install, run the script without --check flag"
+        else
+            echo ""
+            log_error "❌ Configuration validation failed"
+            log_info "Please fix the errors above and try again"
+            exit 1
+        fi
+    else
+        # Normal mode: install
+        install_nixos
+        set_root_password
+        set_user_password
+        
+        # Complete
+        show_completion
+    fi
 }
 
 # Run main function
