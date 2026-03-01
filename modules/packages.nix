@@ -84,6 +84,7 @@ in
     zoom-us
     cheese
     loupe
+    ffmpeg
 
     #### 5. SYSTEM & TERMINAL
     git
@@ -107,6 +108,7 @@ in
     curl
     netcat-openbsd
     popsicle
+    file
 
     #### 6. UTILS & TROUBLESHOOTING
     wl-clipboard
