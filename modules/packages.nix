@@ -155,6 +155,9 @@ in
     
     #### 7. ADDITIONAL TOOLS
     waydroid
+    slack
+    teams
+    discord
   ];
 
   # Allow unfree packages (required for many proprietary software)
