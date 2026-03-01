@@ -85,6 +85,8 @@ in
     cheese
     loupe
     ffmpeg
+    shotcut
+    kdePackages.kdenlive
 
     #### 5. SYSTEM & TERMINAL
     git
