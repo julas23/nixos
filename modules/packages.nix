@@ -67,6 +67,7 @@ in
     mpvpaper
     ardour
     audacity
+    tenacity
     hydrogen
     muse
     musescore
