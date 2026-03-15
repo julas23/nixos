@@ -159,6 +159,7 @@ in
     slack
     teams
     discord
+    localsend
   ];
 
   # Allow unfree packages (required for many proprietary software)
