@@ -160,6 +160,8 @@ in
     teams
     discord
     localsend
+    openjdk
+    adoptopenjdk-icedtea-web
   ];
 
   # Allow unfree packages (required for many proprietary software)
