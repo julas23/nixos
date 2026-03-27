@@ -157,7 +157,7 @@ in
     #### 7. ADDITIONAL TOOLS
     waydroid
     slack
-    teams
+    teams-for-linux
     discord
     localsend
     openjdk
