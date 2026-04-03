@@ -159,16 +159,8 @@ in
       noto-fonts-emoji
     ];
     
-    # Enable sound support with PipeWire (modern audio system)
-    services.pipewire = {
-      enable = true;
-      alsa.enable = true;
-      alsa.support32Bit = true;
-      pulse.enable = true;
-      jack.enable = true;
-    };
-    
-    # Disable PulseAudio (PipeWire replaces it)
+    # Audio: PipeWire is configured centrally in modules/hardware/audio.nix
+    # Ensure PulseAudio is disabled (PipeWire provides compatibility layer)
     hardware.pulseaudio.enable = false;
     
     # Enable NetworkManager

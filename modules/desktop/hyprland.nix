@@ -120,12 +120,9 @@ in
       nerdfonts
     ];
 
-    # Enable sound support with PipeWire
-    services.pipewire = {
-      enable = true;
-      alsa.enable = true;
-      pulse.enable = true;
-    };
+    # Audio: PipeWire is configured centrally in modules/hardware/audio.nix
+    # Ensure PulseAudio is disabled (PipeWire provides compatibility layer)
+    hardware.pulseaudio.enable = false;
 
     # Enable dconf
     programs.dconf.enable = true;

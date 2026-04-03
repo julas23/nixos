@@ -1,5 +1,5 @@
 # Audio Configuration
-# Handles PipeWire or PulseAudio
+# PipeWire only (hardware.pulseaudio removed in NixOS 25.11)
 
 { config, lib, pkgs, ... }:
 
@@ -9,22 +9,19 @@ in
 
 {
   config = lib.mkIf cfg.enable {
-    # PipeWire (modern, recommended)
-    services.pipewire = lib.mkIf (cfg.backend == "pipewire") {
+    # PipeWire (modern audio system — replaces PulseAudio)
+    services.pipewire = {
       enable = true;
       alsa.enable = true;
       alsa.support32Bit = true;
-      pulse.enable = true;
-      jack.enable = true;
+      pulse.enable = true;  # PulseAudio compatibility layer
+      jack.enable = true;   # JACK compatibility layer
     };
 
-    # PulseAudio (legacy)
-    hardware.pulseaudio = lib.mkIf (cfg.backend == "pulseaudio") {
-      enable = true;
-      support32Bit = true;
-    };
+    # PulseAudio MUST be disabled when using PipeWire
+    hardware.pulseaudio.enable = false;
 
-    # Real-time audio (optional, for low-latency)
+    # Real-time audio for low-latency
     security.rtkit.enable = true;
   };
 }
