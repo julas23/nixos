@@ -104,9 +104,6 @@ in
       # Fonts managed centrally in modules/desktop/fonts.nix
     ];
 
-    # Audio: PipeWire is configured centrally in modules/hardware/audio.nix
-    # Ensure PulseAudio is disabled (PipeWire provides compatibility layer)
-    hardware.pulseaudio.enable = false;
 
     # Enable dconf
     programs.dconf.enable = true;

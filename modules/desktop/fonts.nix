@@ -21,7 +21,7 @@ in
         # Unicode and emoji
         noto-fonts
         noto-fonts-cjk-sans
-        noto-fonts-emoji
+        noto-fonts-color-emoji
 
         # Icon fonts (used by status bars, launchers, etc.)
         font-awesome

@@ -1,5 +1,5 @@
 # Audio Configuration
-# PipeWire only (hardware.pulseaudio removed in NixOS 25.11)
+# PipeWire only (services.pulseaudio renamed from hardware.pulseaudio in NixOS 25.11)
 
 { config, lib, pkgs, ... }:
 
@@ -19,7 +19,8 @@ in
     };
 
     # PulseAudio MUST be disabled when using PipeWire
-    hardware.pulseaudio.enable = false;
+    # (renamed from hardware.pulseaudio to services.pulseaudio in NixOS 25.11)
+    services.pulseaudio.enable = false;
 
     # Real-time audio for low-latency
     security.rtkit.enable = true;
