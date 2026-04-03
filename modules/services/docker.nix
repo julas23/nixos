@@ -17,6 +17,7 @@ in
     users.users.${username}.extraGroups = [ "docker" ];
 
     # Docker daemon configuration
+    # Note: data-root (/data/docker) is set by modules/storage/data.nix
     virtualisation.docker.daemon.settings = {
       log-driver = "json-file";
       log-opts = {

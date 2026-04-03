@@ -44,10 +44,7 @@ in
     '')
   ];
 
-  # Create /data/appimage directory with correct ownership
-  systemd.tmpfiles.rules = [
-    "d /data/appimage 0755 ${username} users -"
-  ];
+  # /data/appimage directory is created by modules/storage/data.nix
 
   # Systemd one-shot service: downloads missing AppImages and creates .desktop entries
   systemd.services.appimage-setup = {

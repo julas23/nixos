@@ -50,6 +50,7 @@
     # ./modules/services/lsyncd.nix  # User-specific, see .old/lsyncd.nix
     
     # Storage modules
+    ./modules/storage/data.nix
     ./modules/storage/lvm.nix
     ./modules/storage/zfs.nix
     # ./modules/storage/volumes.nix  # User-specific, see .old/volumes.nix
