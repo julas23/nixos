@@ -152,11 +152,7 @@ in
       xdotool
       wmctrl
       
-      # Fonts
-      dejavu_fonts
-      liberation_ttf
-      noto-fonts
-      noto-fonts-emoji
+      # Fonts managed centrally in modules/desktop/fonts.nix
     ];
     
     # Audio: PipeWire is configured centrally in modules/hardware/audio.nix

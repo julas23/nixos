@@ -101,11 +101,7 @@ in
       xorg.xev                          # Event viewer
       xorg.xprop                        # Property viewer
       
-      # Fonts
-      dejavu_fonts
-      liberation_ttf
-      font-awesome
-      nerdfonts
+      # Fonts managed centrally in modules/desktop/fonts.nix
     ];
 
     # Audio: PipeWire is configured centrally in modules/hardware/audio.nix

@@ -33,6 +33,7 @@
     ./modules/graphics/xorg.nix
     
     # Desktop modules
+    ./modules/desktop/fonts.nix
     ./modules/desktop/plasma.nix
     ./modules/desktop/gnome.nix
     ./modules/desktop/cosmic.nix

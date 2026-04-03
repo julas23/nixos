@@ -100,11 +100,7 @@ in
       desktop-file-utils
       xdg-utils
       
-      # Fonts
-      dejavu_fonts
-      liberation_ttf
-      fira-code
-      fira-code-symbols
+      # Fonts managed centrally in modules/desktop/fonts.nix
     ];
 
     # 7. D-Bus Service Activation

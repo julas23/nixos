@@ -93,9 +93,7 @@ in
       gnome-themes-extra            # Additional GTK themes
       gtk-engine-murrine            # Murrine GTK engine
       
-      # Fonts
-      dejavu_fonts
-      liberation_ttf
+      # Fonts managed centrally in modules/desktop/fonts.nix
     ];
     
     # Audio: PipeWire is configured centrally in modules/hardware/audio.nix

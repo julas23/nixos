@@ -87,10 +87,7 @@ in
       dconf-editor                      # Advanced settings editor
       desktop-file-utils
       
-      # Fonts
-      dejavu_fonts
-      liberation_ttf
-      cantarell-fonts
+      # Fonts managed centrally in modules/desktop/fonts.nix
     ];
 
     # Enable GNOME services
