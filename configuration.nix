@@ -60,6 +60,9 @@
     
     # System packages
     ./modules/packages.nix
+
+    # AppImage support and managed AppImage apps
+    ./modules/appimage.nix
     
     # Profile (optional, uncomment one)
     # ./profiles/minimal.nix
