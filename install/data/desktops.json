@@ -64,12 +64,12 @@
   },
   {
     "value": "awesome",
-    "label": "Awesome",
-    "description": "Highly configurable window manager",
+    "label": "Awesome WM",
+    "description": "Highly configurable tiling/floating window manager for X11 (Lua-based)",
     "type": "WM",
     "display_server": "xorg",
     "difficulty": "advanced",
-    "popular": false
+    "popular": true
   },
   {
     "value": "none",
