@@ -120,7 +120,7 @@ def generate_config_nix(choices: Dict[str, Any], output_path: str = None) -> str
             "name": choices.get("username", "user"),
             "fullName": choices.get("user_fullname", "User Name"),
             "uid": choices.get("user_uid", 1000),
-            "gid": choices.get("user_gid", 1000),
+            "gid": choices.get("user_gid", 100),  # GID 100 = standard 'users' group
             "group": "users",
             "extraGroups": choices.get("user_groups", ["wheel", "networkmanager"]),
             "sudoer": choices.get("user_sudoer", True),

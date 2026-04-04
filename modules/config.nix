@@ -89,7 +89,7 @@
       name = "user";
       fullName = "User Name";
       uid = 1000;
-      gid = 1000;
+      gid = 100;   # GID 100 is the standard GID for the 'users' group on Linux
       group = "users";
       extraGroups = [ "wheel" "networkmanager" ];
       sudoer = true;

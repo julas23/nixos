@@ -447,7 +447,7 @@ class Configurator:
         # Default groups
         self.choices["user_groups"] = ["wheel", "networkmanager"]
         self.choices["user_uid"] = 1000
-        self.choices["user_gid"] = 1000
+        self.choices["user_gid"] = 100  # GID 100 is the standard GID for 'users' group
         self.choices["user_shell"] = "bash"
     
     def show_summary(self):

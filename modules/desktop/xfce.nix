@@ -53,7 +53,6 @@ in
       xfce.xfce4-systemload-plugin       # System load monitor
       xfce.xfce4-netload-plugin          # Network monitor
       xfce.xfce4-cpugraph-plugin         # CPU graph
-      xfce.xfce4-diskperf-plugin         # Disk performance
       xfce.xfce4-fsguard-plugin          # Filesystem guard
       xfce.xfce4-genmon-plugin           # Generic monitor
       xfce.xfce4-timer-plugin            # Timer
