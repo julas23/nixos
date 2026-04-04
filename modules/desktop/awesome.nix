@@ -87,7 +87,7 @@ in
 
       # App launcher — rofi with modern themes
       rofi
-      rofi-wayland              # Rofi with Wayland/X11 support (latest)
+      #rofi-wayland              # Rofi with Wayland/X11 support (latest)
       dmenu                     # Fallback simple menu
 
       # Bar / widget system — eww (like waybar but for X11 too)
