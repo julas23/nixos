@@ -7,6 +7,7 @@ Guides users through system configuration with hardware detection and validation
 import os
 import sys
 import json
+import argparse
 import subprocess
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
@@ -467,7 +468,7 @@ class Configurator:
         print(f"Ollama:          {'Yes' if self.choices.get('ollama_enable') else 'No'}")
         print(f"SSH:             {'Yes' if self.choices.get('ssh_enable') else 'No'}")
     
-    def run(self):
+    def run(self, save_json: str = None):
         """Run the configuration wizard"""
         print("\n" + "=" * 60)
         print("  NixOS Interactive Configuration Wizard")
@@ -499,10 +500,11 @@ class Configurator:
             config_content = generate_config_nix(self.choices, output_path)
             print(f"\n✓ Configuration written to: {output_path}")
             
-            # Save choices to JSON for reference
-            json_path = "/mnt/etc/nixos/install-choices.json"
-            save_choices_to_json(self.choices, json_path)
-            print(f"✓ Choices saved to: {json_path}")
+            # Save choices to JSON cache
+            # Priority: --save-json arg > default .install.json
+            cache_path = save_json if save_json else "/mnt/etc/nixos/.install.json"
+            save_choices_to_json(self.choices, cache_path)
+            print(f"✓ Choices cached to: {cache_path}")
             
             return True
         except Exception as e:
@@ -512,10 +514,61 @@ class Configurator:
 
 def main():
     """Main entry point"""
+    parser = argparse.ArgumentParser(
+        description="NixOS Interactive Configuration Wizard",
+        formatter_class=argparse.RawTextHelpFormatter
+    )
+    parser.add_argument(
+        "--from-json",
+        metavar="FILE",
+        help="Load configuration from a cached .install.json file (skips wizard)"
+    )
+    parser.add_argument(
+        "--save-json",
+        metavar="FILE",
+        help="Save choices to a JSON cache file after wizard completes"
+    )
+    args = parser.parse_args()
+
     try:
         configurator = Configurator()
-        success = configurator.run()
-        
+
+        # --- Load from cache (skip wizard) ---
+        if args.from_json:
+            json_path = args.from_json
+            if not Path(json_path).exists():
+                print(f"\n✗ Cache file not found: {json_path}")
+                sys.exit(1)
+
+            print(f"\n✓ Loading configuration from: {json_path}")
+            with open(json_path, "r") as f:
+                configurator.choices = json.load(f)
+
+            # Remove internal/sensitive keys before showing summary
+            configurator.show_summary()
+
+            if not configurator.yes_no("\nApply this configuration?", default=True):
+                print("\nConfiguration cancelled.")
+                sys.exit(1)
+
+            # Write config.nix
+            output_path = "/mnt/etc/nixos/modules/config.nix"
+            generate_config_nix(configurator.choices, output_path)
+            print(f"\n✓ Configuration written to: {output_path}")
+
+            # Update cache with latest choices (in case path differs)
+            save_choices_to_json(configurator.choices, json_path)
+            print(f"✓ Cache updated: {json_path}")
+
+            print("\n" + "=" * 60)
+            print("  Configuration loaded from cache!")
+            print("  You can now proceed with: nixos-install")
+            print("=" * 60 + "\n")
+            sys.exit(0)
+
+        # --- Interactive wizard ---
+        success = configurator.run(save_json=args.save_json)
+
         if success:
             print("\n" + "=" * 60)
             print("  Configuration complete!")
@@ -524,7 +577,7 @@ def main():
             sys.exit(0)
         else:
             sys.exit(1)
-    
+
     except KeyboardInterrupt:
         print("\n\nConfiguration cancelled by user.")
         sys.exit(1)

@@ -8,6 +8,7 @@ set -e  # Exit on error
 
 # Global variables
 TEST_MODE=false
+INSTALL_JSON="/mnt/etc/nixos/.install.json"  # Cache file for configuration choices
 
 # Colors for output
 RED='\033[0;31m'
@@ -361,22 +362,59 @@ VOLUMES_FOOTER
 
 # Run interactive configurator
 run_configurator() {
-    log_info "Starting interactive configuration wizard..."
-    echo ""
-    log_info "The wizard will guide you through system configuration"
-    echo ""
-    sleep 2
-    
-    # Enter nix-shell with python3 and run configurator
     cd /mnt/etc/nixos
-    
-    nix-shell -p python3 --run "python3 /mnt/etc/nixos/install/configurator.py"
-    
+
+    # Check if a cached configuration exists
+    if [ -f "$INSTALL_JSON" ]; then
+        echo ""
+        log_info "Found cached configuration: $INSTALL_JSON"
+        echo ""
+        cat "$INSTALL_JSON" | python3 -c "
+import json, sys
+d = json.load(sys.stdin)
+print('  Hostname:       ' + str(d.get('hostname', '?')))
+print('  Timezone:       ' + str(d.get('timezone', '?')))
+print('  Desktop:        ' + str(d.get('desktop', '?')))
+print('  Display Server: ' + str(d.get('display_server', '?')))
+print('  Username:       ' + str(d.get('username', '?')))
+print('  GPU:            ' + str(d.get('gpu', '?')))
+print('  Docker:         ' + str(d.get('docker_enable', False)))
+"
+        echo ""
+        read -p "Use cached configuration? [Y/n]: " USE_CACHE
+        USE_CACHE=${USE_CACHE:-Y}
+
+        if [[ "$USE_CACHE" =~ ^[Yy]$ ]]; then
+            log_info "Loading configuration from cache..."
+            nix-shell -p python3 --run "python3 /mnt/etc/nixos/install/configurator.py --from-json $INSTALL_JSON"
+
+            if [ $? -ne 0 ]; then
+                log_error "Failed to load cached configuration"
+                exit 1
+            fi
+
+            log_success "Configuration loaded from cache"
+            return 0
+        else
+            log_info "Starting fresh configuration wizard..."
+            echo ""
+        fi
+    else
+        log_info "Starting interactive configuration wizard..."
+        echo ""
+        log_info "The wizard will guide you through system configuration"
+        echo ""
+        sleep 2
+    fi
+
+    # Run interactive wizard — saves choices to INSTALL_JSON automatically
+    nix-shell -p python3 --run "python3 /mnt/etc/nixos/install/configurator.py --save-json $INSTALL_JSON"
+
     if [ $? -ne 0 ]; then
         log_error "Configuration wizard failed or was cancelled"
         exit 1
     fi
-    
+
     log_success "Configuration completed"
 }
 
@@ -548,7 +586,23 @@ parse_arguments() {
             --check|--test)
                 TEST_MODE=true
                 log_info "Running in TEST MODE - no installation will be performed"
-                shift
+                ;;
+            --reset-cache|--fresh)
+                if [ -f "$INSTALL_JSON" ]; then
+                    rm -f "$INSTALL_JSON"
+                    log_info "Cache cleared: $INSTALL_JSON"
+                else
+                    log_info "No cache file found, nothing to clear"
+                fi
+                ;;
+            --show-cache)
+                if [ -f "$INSTALL_JSON" ]; then
+                    log_info "Cached configuration ($INSTALL_JSON):"
+                    cat "$INSTALL_JSON"
+                else
+                    log_warning "No cache file found at $INSTALL_JSON"
+                fi
+                exit 0
                 ;;
             --help|-h)
                 show_usage
@@ -562,18 +616,26 @@ parse_arguments() {
         esac
     done
 }
-
 # Show usage information
 show_usage() {
     echo "Usage: $0 [OPTIONS]"
     echo ""
     echo "Options:"
-    echo "  --check, --test    Validate configuration without installing"
+    echo "  --check, --test    Validate configuration without installing (dry-run)"
+    echo "  --reset-cache      Clear saved .install.json and force fresh wizard"
+    echo "  --show-cache       Display current cached configuration and exit"
     echo "  --help, -h         Show this help message"
     echo ""
+    echo "Cache behavior:"
+    echo "  If /mnt/etc/nixos/.install.json exists, the installer will offer to"
+    echo "  reuse the previous configuration, skipping the interactive wizard."
+    echo "  This is useful for repeated test installations."
+    echo ""
     echo "Examples:"
-    echo "  $0                 # Normal installation"
-    echo "  $0 --check         # Test mode (validate only)"
+    echo "  $0                 # Normal installation (uses cache if available)"
+    echo "  $0 --check         # Validate config only, no disk operations"
+    echo "  $0 --reset-cache   # Clear cache and run fresh wizard"
+    echo "  $0 --show-cache    # Show what is saved in the cache"
 }
 
 # Main installation flow
@@ -590,49 +652,58 @@ main() {
     
     check_root
     check_internet
-    
-    log_info "Starting NixOS installation process..."
-    echo ""
-    
-    # Disk operations
-    select_disk
-    partition_disk
-    format_partitions
-    mount_partitions
-    
-    # Configuration
-    clone_repository
-    generate_hardware_config
-    update_volumes_uuids
-    run_configurator
-    
-    # Validation or Installation
+
+    # --check mode: skip disk operations, go straight to validation
     if [ "$TEST_MODE" = true ]; then
-        # Test mode: validate only
+        log_info "Starting NixOS installation process..."
         echo ""
-        log_info "=== VALIDATION MODE ==="
+
+        # Configuration only (no disk ops)
+        clone_repository
+        generate_hardware_config
+        update_volumes_uuids
+        run_configurator
+
+        echo ""
+        log_info "=== VALIDATION MODE (no disk operations) ==="
         echo ""
         validate_configuration
-        
+
         if [ $? -eq 0 ]; then
             echo ""
             log_success "✅ Configuration is valid and ready for installation!"
-            log_info "To install, run the script without --check flag"
+            log_info "Run without --check to perform the actual installation"
         else
             echo ""
             log_error "❌ Configuration validation failed"
             log_info "Please fix the errors above and try again"
             exit 1
         fi
-    else
-        # Normal mode: install
-        install_nixos
-        set_root_password
-        set_user_password
-        
-        # Complete
-        show_completion
+        exit 0
     fi
+
+    log_info "Starting NixOS installation process..."
+    echo ""
+
+    # Disk operations
+    select_disk
+    partition_disk
+    format_partitions
+    mount_partitions
+
+    # Configuration
+    clone_repository
+    generate_hardware_config
+    update_volumes_uuids
+    run_configurator
+
+    # Normal mode: install
+    install_nixos
+    set_root_password
+    set_user_password
+
+    # Complete
+    show_completion
 }
 
 # Run main function
