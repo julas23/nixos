@@ -60,7 +60,6 @@ in
       xfce.xfce4-sensors-plugin          # Hardware sensors
       xfce.xfce4-eyes-plugin             # Eyes (fun)
       xfce.xfce4-mpc-plugin              # MPD client
-      xfce.xfce4-mount-plugin            # Mount devices
       
       # Core applications
       xfce.xfce4-terminal                # Terminal emulator
