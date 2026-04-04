@@ -76,7 +76,6 @@ in
       xfce.gigolo                        # Remote filesystem manager
       xfce.orage                         # Calendar
       xfce.xfce4-dict                    # Dictionary
-      xfce.xfce4-mixer                   # Audio mixer (if needed)
       
       # Archive support
       xarchiver                          # Archive manager
