@@ -56,7 +56,6 @@ in
       xfce.xfce4-fsguard-plugin          # Filesystem guard
       xfce.xfce4-genmon-plugin           # Generic monitor
       xfce.xfce4-timer-plugin            # Timer
-      xfce.xfce4-datetime-plugin         # Date and time
       xfce.xfce4-battery-plugin          # Battery monitor
       xfce.xfce4-sensors-plugin          # Hardware sensors
       xfce.xfce4-eyes-plugin             # Eyes (fun)
