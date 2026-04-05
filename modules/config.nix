@@ -80,7 +80,7 @@
         permitRootLogin = false;
       };
       lsyncd = {
-        enable = false;
+        enable = true;
       };
     };
 
