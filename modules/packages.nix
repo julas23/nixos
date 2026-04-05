@@ -73,6 +73,7 @@ in
     musescore
     rhythmbox
     obs-studio
+    nicotine-plus
     vlc
     clementine
     picard
