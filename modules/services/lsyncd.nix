@@ -8,8 +8,8 @@ let
   username = config.system.config.user.name;
   
   # Source and target directories for synchronization
-  warmDir = "/mnt/WARM/${username}/";
-  coldDir = "/mnt/COLD/${username}/";
+  sourceDir = "/home/${username}/";
+  targetDir = "/mnt/CASE/${username}/";
 in
 
 {
@@ -39,11 +39,11 @@ in
             return false
         end
 
-        if is_mounted("/mnt/COLD") then
+        if is_mounted("/mnt/DOCK") then
             sync {
                 default.rsync,
-                source    = "${warmDir}",
-                target    = "${coldDir}",
+                source    = "${sourceDir}",
+                target    = "${targetDir}",
                 excludeFrom = "/etc/lsyncd/lsyncd.exclude",
                 rsync     = {
                     archive  = true,
@@ -69,7 +69,6 @@ in
         *.lock
         .zcompdump*
         .android/
-        .cache/
         .cargo/
         .pki/
         .vscode/
@@ -80,7 +79,6 @@ in
         .local/share/Steam/compatibilitytools.d/
         .local/state
         .local/lib
-        .local/cache
       '';
     };
 
