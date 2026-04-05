@@ -79,9 +79,6 @@
         enable = true;
         permitRootLogin = false;
       };
-      lsyncd = {
-        enable = true;
-      };
     };
 
     # User Configuration
