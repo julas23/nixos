@@ -89,6 +89,7 @@ in
     ffmpeg
     shotcut
     kdePackages.kdenlive
+    python313Packages.deemix
 
     #### 5. SYSTEM & TERMINAL
     git
