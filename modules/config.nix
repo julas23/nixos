@@ -75,6 +75,9 @@
       ollama = {
         enable = false;
       };
+      claude = {
+        claude.enable = false;
+      };
       ssh = {
         enable = true;
         permitRootLogin = false;
