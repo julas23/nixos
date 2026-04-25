@@ -46,6 +46,7 @@
     # Services modules
     ./modules/services/docker.nix
     ./modules/services/ollama.nix
+    ./modules/services/claude.nix
     ./modules/services/ssh.nix
     ./modules/services/lsyncd.nix
     
