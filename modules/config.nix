@@ -76,9 +76,7 @@
         enable = false;
       };
       claude = {
-        code.enable     = false;  # Claude Code via nixpkgs (estável)
-        terminal.enable = true;   # Claude Code via flake (updates rápidos) ← recomendado
-        desktop.enable  = false;  # Claude Desktop GUI (não oficial)
+        code.enable     = false;
       };
       ssh = {
         enable = true;
