@@ -164,6 +164,7 @@ in
     localsend
     openjdk
     adoptopenjdk-icedtea-web
+    obsidian
   ];
 
   # Allow unfree packages (required for many proprietary software)
