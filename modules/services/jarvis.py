@@ -13,7 +13,7 @@ import edge_tts
 
 API_KEY    = os.environ.get("ANTHROPIC_API_KEY", "")
 MODEL_PATH = os.environ.get("JARVIS_MODEL", "/var/lib/jarvis/models/ggml-large-v3-turbo.bin")
-VOICE      = os.environ.get("JARVIS_VOICE", "pt-BR-AntonioNeural")
+VOICE      = os.environ.get("JARVIS_VOICE", "pt-BR-ThalitaNeural")
 HISTORY    = Path(os.environ.get("JARVIS_HISTORY", os.path.expanduser("~/.local/share/jarvis/history.json")))
 THREADS    = os.environ.get("JARVIS_THREADS", str(min(os.cpu_count() or 4, 8)))
 
