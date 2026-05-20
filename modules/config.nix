@@ -82,6 +82,9 @@
         enable = true;
         permitRootLogin = false;
       };
+      jarvis = {
+        enable = false;
+      };
     };
 
     # User Configuration
@@ -124,6 +127,23 @@
         enable = true;
         dates = "weekly";
         options = "--delete-older-than 7d";
+      };
+    };
+
+    # AI / QC / ML Stack
+    # Set enable = true on machines with GPU acceleration hardware (NVIDIA CUDA or AMD ROCm).
+    # Enables: Ollama, LiteLLM, OpenWebUI, ComfyUI, whisper-cpp, MCP servers (webcam, comfyui, memory),
+    #          Quantum Espresso, QuTiP, scientific Python, and ML venv setup helpers.
+    # When enabled, /data is mounted from an LVM RAID1 volume instead of living on the root fs.
+    ai = {
+      enable = false;
+
+      data = {
+        # Block device for the /data LVM logical volume (only mounted when ai.enable = true).
+        # Create it with: sudo ai-storage-setup /dev/sdX /dev/sdY
+        # For stability after setup, prefer UUID: /dev/disk/by-uuid/YOUR-UUID-HERE
+        device = "/dev/vg-data/data";
+        fsType = "ext4";
       };
     };
   };

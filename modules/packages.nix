@@ -91,6 +91,9 @@ in
     kdePackages.kdenlive
     python313Packages.deemix
 
+    libimobiledevice
+    ifuse
+
     #### 5. SYSTEM & TERMINAL
     git
     jq
@@ -107,6 +110,7 @@ in
     dmidecode
     neofetch
     kitty
+    conky
     alacritty
     zsh
     tmux
@@ -114,8 +118,10 @@ in
     netcat-openbsd
     popsicle
     file
+    fail2ban
 
     #### 6. UTILS & TROUBLESHOOTING
+    xorg.xkill
     wl-clipboard
     libinput-gestures
     mlocate
@@ -165,6 +171,9 @@ in
     openjdk
     adoptopenjdk-icedtea-web
     obsidian
+    tailscale
+    threema-desktop
+    pkgs.pandoc
   ];
 
   # Allow unfree packages (required for many proprietary software)
@@ -227,4 +236,7 @@ in
 
   # Enable Flatpak support
   services.flatpak.enable = true;
+
+  services.usbmuxd.enable = true;
+
 }

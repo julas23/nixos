@@ -49,6 +49,10 @@
     ./modules/services/claude.nix
     ./modules/services/ssh.nix
     ./modules/services/lsyncd.nix
+    ./modules/services/jarvis.nix
+
+    # AI / QC / ML stack (activated by config.system.config.ai.enable = true)
+    ./modules/ai
     
     # Storage modules
     ./modules/storage/data.nix
