@@ -70,7 +70,8 @@ def transcribe(audio_path: str) -> str:
          "-f", audio_path,
          "-l", "pt",
          "-nt",
-         "--output-file", base],
+         "-otxt",
+         "-of", base],
         check=True,
         capture_output=True,
     )
