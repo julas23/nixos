@@ -9,13 +9,11 @@ import tempfile
 from pathlib import Path
 
 import anthropic
-import edge_tts
 
-API_KEY    = os.environ.get("ANTHROPIC_API_KEY", "")
-MODEL_PATH = os.environ.get("JARVIS_MODEL", "/var/lib/jarvis/models/ggml-large-v3-turbo.bin")
-VOICE      = os.environ.get("JARVIS_VOICE", "pt-BR-ThalitaNeural")
-HISTORY    = Path(os.environ.get("JARVIS_HISTORY", os.path.expanduser("~/.local/share/jarvis/history.json")))
-THREADS    = os.environ.get("JARVIS_THREADS", str(min(os.cpu_count() or 4, 8)))
+API_KEY      = os.environ.get("ANTHROPIC_API_KEY", "")
+WHISPER_MODEL = os.environ.get("JARVIS_MODEL",   "/var/lib/jarvis/models/ggml-large-v3-turbo.bin")
+PIPER_MODEL   = os.environ.get("PIPER_MODEL",    "/var/lib/jarvis/models/pt_BR-faber-medium.onnx")
+THREADS       = os.environ.get("JARVIS_THREADS", str(min(os.cpu_count() or 4, 8)))
 
 SYSTEM_PROMPT = (
     "Você é Jarvis, assistente pessoal e interlocutor de confiança. "
@@ -35,24 +33,24 @@ C_GREEN   = "\033[32m"
 C_MAGENTA = "\033[35m"
 C_RED     = "\033[31m"
 
-# Detecta fim de frase: ponto/exclamação/interrogação seguido de espaço
 SENTENCE_END = re.compile(r'(?<=[.!?…])\s+')
-# Tamanho mínimo de frase para enviar ao TTS (evita fragmentos curtos)
 MIN_SENTENCE = 15
 
 
 def load_history() -> list:
-    if HISTORY.exists():
+    history_path = Path(os.environ.get("JARVIS_HISTORY", os.path.expanduser("~/.local/share/jarvis/history.json")))
+    if history_path.exists():
         try:
-            return json.loads(HISTORY.read_text())
+            return json.loads(history_path.read_text())
         except Exception:
             return []
     return []
 
 
 def save_history(history: list) -> None:
-    HISTORY.parent.mkdir(parents=True, exist_ok=True)
-    HISTORY.write_text(json.dumps(history[-40:], ensure_ascii=False))
+    history_path = Path(os.environ.get("JARVIS_HISTORY", os.path.expanduser("~/.local/share/jarvis/history.json")))
+    history_path.parent.mkdir(parents=True, exist_ok=True)
+    history_path.write_text(json.dumps(history[-40:], ensure_ascii=False))
 
 
 def record() -> str:
@@ -74,7 +72,7 @@ def transcribe(audio_path: str) -> str:
     base = audio_path.replace(".wav", "")
     subprocess.run(
         ["whisper-cli",
-         "-m", MODEL_PATH,
+         "-m", WHISPER_MODEL,
          "-f", audio_path,
          "-l", "pt",
          "-nt",
@@ -103,45 +101,43 @@ def strip_markdown(text: str) -> str:
     return re.sub(r'\n{3,}', '\n\n', text).strip()
 
 
-async def prefetch_audio(text: str) -> bytes:
-    """Busca todos os chunks de áudio do Edge TTS em memória."""
-    communicate = edge_tts.Communicate(text, VOICE)
-    data = b""
-    async for chunk in communicate.stream():
-        if chunk["type"] == "audio":
-            data += chunk["data"]
-    return data
-
-
-async def play_bytes(data: bytes) -> None:
-    """Envia bytes de áudio para mpv via pipe. asyncio.to_thread libera o event loop durante playback."""
-    proc = subprocess.Popen(
-        ["mpv", "--no-terminal", "--really-quiet", "-"],
+async def speak_piper(text: str) -> None:
+    """
+    Piper gera WAV via stdout → mpv toca via stdin pipe.
+    Zero latência de rede, geração local em ~100ms por frase.
+    """
+    piper_proc = subprocess.Popen(
+        ["piper", "--model", PIPER_MODEL, "--output-file", "/dev/stdout"],
         stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL,
     )
-    try:
-        proc.stdin.write(data)
-        proc.stdin.close()
-    except BrokenPipeError:
-        pass
-    await asyncio.to_thread(proc.wait)
+    mpv_proc = subprocess.Popen(
+        ["mpv", "--no-terminal", "--really-quiet", "-"],
+        stdin=piper_proc.stdout,
+        stderr=subprocess.DEVNULL,
+    )
+    piper_proc.stdout.close()  # deixa piper_proc receber SIGPIPE se mpv fechar
+    piper_proc.stdin.write((text + "\n").encode("utf-8"))
+    piper_proc.stdin.close()
+    await asyncio.to_thread(piper_proc.wait)
+    await asyncio.to_thread(mpv_proc.wait)
 
 
 async def ask_and_speak(text: str, history: list) -> str:
     """
-    Pipeline producer/consumer totalmente assíncrono:
-      producer: AsyncAnthropic stream → buffer → frase → prefetch TTS → fila
-      consumer: fila → play_bytes (mpv)
+    Pipeline producer/consumer assíncrono:
+      producer: AsyncAnthropic stream → buffer → frase → queue (texto)
+      consumer: queue → piper → mpv
     asyncio.gather roda ambos em paralelo — enquanto mpv toca a frase N,
-    o TTS da frase N+1 já está sendo pré-buscado.
+    o Claude já acumulou a frase N+1 no buffer.
     """
     client = anthropic.AsyncAnthropic(api_key=API_KEY)
     history.append({"role": "user", "content": text})
 
     full_reply = ""
     buffer = ""
-    audio_queue: asyncio.Queue = asyncio.Queue(maxsize=3)
+    sentence_queue: asyncio.Queue = asyncio.Queue(maxsize=4)
 
     print(f"{C_MAGENTA}Jarvis:{C_RESET} ", end="", flush=True)
 
@@ -161,23 +157,20 @@ async def ask_and_speak(text: str, history: list) -> str:
 
                     parts = SENTENCE_END.split(buffer, maxsplit=1)
                     if len(parts) > 1 and len(parts[0]) >= MIN_SENTENCE:
-                        audio = await prefetch_audio(strip_markdown(parts[0]))
-                        await audio_queue.put(audio)
+                        await sentence_queue.put(strip_markdown(parts[0]))
                         buffer = parts[1]
 
-            # Flush qualquer texto restante
             if buffer.strip():
-                audio = await prefetch_audio(strip_markdown(buffer))
-                await audio_queue.put(audio)
+                await sentence_queue.put(strip_markdown(buffer))
         finally:
-            await audio_queue.put(None)  # sentinel: sinaliza fim ao consumer
+            await sentence_queue.put(None)
 
     async def consumer() -> None:
         while True:
-            audio = await audio_queue.get()
-            if audio is None:
+            sentence = await sentence_queue.get()
+            if sentence is None:
                 break
-            await play_bytes(audio)
+            await speak_piper(sentence)
 
     await asyncio.gather(producer(), consumer())
     print("\n")
@@ -193,11 +186,15 @@ def check_prerequisites() -> None:
             "Configure em /etc/jarvis/env:\n"
             "  ANTHROPIC_API_KEY=sk-ant-..."
         )
-    if not Path(MODEL_PATH).exists():
+    if not Path(WHISPER_MODEL).exists():
         sys.exit(
-            f"{C_RED}Erro:{C_RESET} Modelo não encontrado: {MODEL_PATH}\n"
-            "Execute como root:\n"
-            "  jarvis-setup"
+            f"{C_RED}Erro:{C_RESET} Modelo Whisper não encontrado: {WHISPER_MODEL}\n"
+            "Execute: sudo jarvis-setup"
+        )
+    if not Path(PIPER_MODEL).exists():
+        sys.exit(
+            f"{C_RED}Erro:{C_RESET} Modelo Piper não encontrado: {PIPER_MODEL}\n"
+            "Execute: sudo jarvis-setup"
         )
 
 
@@ -205,7 +202,7 @@ async def main_loop() -> None:
     check_prerequisites()
     history = load_history()
 
-    print(f"Jarvis pronto  |  modelo: {Path(MODEL_PATH).name}  |  voz: {VOICE}")
+    print(f"Jarvis pronto  |  whisper: {Path(WHISPER_MODEL).name}  |  tts: {Path(PIPER_MODEL).stem}")
     print("Ctrl+C para encerrar.\n")
 
     while True:
