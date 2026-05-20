@@ -50,11 +50,12 @@ def save_history(history: list) -> None:
 def record() -> str:
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
         path = f.name
+    threshold = os.environ.get("JARVIS_THRESHOLD", "0.5%")
     print(f"{C_YELLOW}🎙  Ouvindo...{C_RESET}", flush=True)
     subprocess.run(
-        ["sox", "-d", path,
-         "silence", "1", "0.3", "2%",
-         "1", "2.5", "2%"],
+        ["sox", "-d", "-r", "16000", "-c", "1", path,
+         "silence", "1", "0.2", threshold,
+         "1", "2.5", threshold],
         check=True,
         stderr=subprocess.DEVNULL,
     )

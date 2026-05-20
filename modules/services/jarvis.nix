@@ -23,11 +23,6 @@ let
     edge-tts
   ]);
 
-  jarvisScript = pkgs.writeTextFile {
-    name = "jarvis.py";
-    text  = builtins.readFile ./jarvis.py;
-  };
-
   jarvisRun = pkgs.writeShellScriptBin "jarvis" ''
     export PATH="${jarvisPython}/bin:${pkgs.whisper-cpp}/bin:${pkgs.sox}/bin:${pkgs.mpv}/bin:$PATH"
     if [ -f /etc/jarvis/env ]; then
@@ -35,7 +30,7 @@ let
       source /etc/jarvis/env
       set +a
     fi
-    exec ${jarvisPython}/bin/python3 ${jarvisScript} "$@"
+    exec ${jarvisPython}/bin/python3 /etc/nixos/modules/services/jarvis.py "$@"
   '';
 
   jarvisSetup = pkgs.writeShellScriptBin "jarvis-setup" ''
