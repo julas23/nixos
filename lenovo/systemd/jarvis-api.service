@@ -1,0 +1,15 @@
+[Unit]
+Description=Jarvis API Server (OpenAI-compatible)
+After=network.target
+
+[Service]
+Type=simple
+EnvironmentFile=/DATA/jarvis/.env
+Environment=PYTHONUNBUFFERED=1
+WorkingDirectory=/DATA/jarvis
+ExecStart=/DATA/jarvis/env/bin/uvicorn jarvis_api:app --host 0.0.0.0 --port 8000
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

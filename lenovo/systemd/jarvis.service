@@ -1,0 +1,18 @@
+[Unit]
+Description=Jarvis Voice Assistant
+After=pipewire.service pipewire-pulse.service network.target
+
+[Service]
+Type=simple
+EnvironmentFile=/DATA/jarvis/.env
+Environment=PYTHONUNBUFFERED=1
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
+Environment=LD_LIBRARY_PATH=/usr/local/lib/ollama/cuda_v12
+WorkingDirectory=/DATA/jarvis
+ExecStart=/DATA/jarvis/env/bin/python3 /DATA/jarvis/jarvis.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
