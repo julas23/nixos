@@ -1,0 +1,7 @@
+#!/run/current-system/sw/bin/bash
+
+sudo nixos-rebuild switch
+sudo nix-collect-garbage  --delete-old
+sudo nix-collect-garbage -d
+sudo /run/current-system/bin/switch-to-configuration boot
+sudo nix store optimise
