@@ -66,7 +66,7 @@ in
     systemd.tmpfiles.rules = [
       "d /var/lib/jarvis        0755 root root -"
       "d /var/lib/jarvis/models 0755 root root -"
-      "d /etc/jarvis            0700 root root -"
+      "d /etc/jarvis            0755 root root -"
     ];
   };
 }
