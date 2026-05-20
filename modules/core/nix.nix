@@ -13,6 +13,7 @@ in
     settings = {
       experimental-features = lib.mkIf cfg.flakes [ "nix-command" "flakes" ];
       auto-optimise-store = cfg.autoOptimiseStore;
+      build-dir = "/var/tmp";
     };
 
     # Garbage collection
