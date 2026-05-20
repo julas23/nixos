@@ -24,15 +24,18 @@ SYSTEM_PROMPT = (
     "Para conversação fluida: respostas curtas (2-3 frases no máximo). "
     "Para organização de ideias ou análise: pode desenvolver com estrutura clara. "
     "Quando o usuário apresentar muitas ideias ao mesmo tempo, ajude a nomear, "
-    "organizar e priorizar sem perder nenhuma."
+    "organizar e priorizar sem perder nenhuma. "
+    "IMPORTANTE: responda em texto puro, sem markdown, sem asteriscos, sem listas com traços."
 )
 
-C_RESET  = "\033[0m"
-C_YELLOW = "\033[33m"
-C_CYAN   = "\033[36m"
-C_GREEN  = "\033[32m"
+C_RESET   = "\033[0m"
+C_YELLOW  = "\033[33m"
+C_CYAN    = "\033[36m"
+C_GREEN   = "\033[32m"
 C_MAGENTA = "\033[35m"
-C_RED    = "\033[31m"
+C_RED     = "\033[31m"
+
+SENTENCE_END = re.compile(r'(?<=[.!?…])\s+')
 
 
 def load_history() -> list:
@@ -86,20 +89,6 @@ def transcribe(audio_path: str) -> str:
     return text
 
 
-def ask_claude(text: str, history: list) -> str:
-    client = anthropic.Anthropic(api_key=API_KEY)
-    history.append({"role": "user", "content": text})
-    response = client.messages.create(
-        model="claude-haiku-4-5-20251001",
-        max_tokens=600,
-        system=SYSTEM_PROMPT,
-        messages=history,
-    )
-    reply = response.content[0].text
-    history.append({"role": "assistant", "content": reply})
-    return reply
-
-
 def strip_markdown(text: str) -> str:
     text = re.sub(r'\*{1,3}([^*]+?)\*{1,3}', r'\1', text)
     text = re.sub(r'^#{1,6}\s+', '', text, flags=re.MULTILINE)
@@ -111,12 +100,56 @@ def strip_markdown(text: str) -> str:
     return re.sub(r'\n{3,}', '\n\n', text).strip()
 
 
-async def speak(text: str) -> None:
-    with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as f:
-        out = f.name
-    await edge_tts.Communicate(text, VOICE).save(out)
-    subprocess.run(["mpv", "--no-terminal", "--really-quiet", out])
-    Path(out).unlink(missing_ok=True)
+async def speak_stream(text: str) -> None:
+    """Pipe Edge TTS audio chunks directly to mpv — sem arquivo temporário."""
+    communicate = edge_tts.Communicate(text, VOICE)
+    proc = subprocess.Popen(
+        ["mpv", "--no-terminal", "--really-quiet", "-"],
+        stdin=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+    )
+    try:
+        async for chunk in communicate.stream():
+            if chunk["type"] == "audio":
+                proc.stdin.write(chunk["data"])
+        proc.stdin.close()
+    except BrokenPipeError:
+        pass
+    proc.wait()
+
+
+async def ask_and_speak(text: str, history: list) -> str:
+    """Streaming Claude + TTS por sentença — começa a falar antes de terminar de gerar."""
+    client = anthropic.Anthropic(api_key=API_KEY)
+    history.append({"role": "user", "content": text})
+
+    full_reply = ""
+    buffer = ""
+
+    print(f"{C_MAGENTA}Jarvis:{C_RESET} ", end="", flush=True)
+
+    with client.messages.stream(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=600,
+        system=SYSTEM_PROMPT,
+        messages=history,
+    ) as stream:
+        for delta in stream.text_stream:
+            full_reply += delta
+            buffer += delta
+            print(delta, end="", flush=True)
+
+            parts = SENTENCE_END.split(buffer, maxsplit=1)
+            if len(parts) > 1 and len(parts[0]) > 15:
+                await speak_stream(strip_markdown(parts[0]))
+                buffer = parts[1]
+
+        if buffer.strip():
+            await speak_stream(strip_markdown(buffer))
+
+    print("\n")
+    history.append({"role": "assistant", "content": full_reply})
+    return full_reply
 
 
 def check_prerequisites() -> None:
@@ -134,7 +167,7 @@ def check_prerequisites() -> None:
         )
 
 
-def main() -> None:
+async def main_loop() -> None:
     check_prerequisites()
     history = load_history()
 
@@ -154,12 +187,8 @@ def main() -> None:
 
             print(f"{C_GREEN}Você:{C_RESET} {text}")
 
-            print(f"{C_CYAN}💭  Pensando...{C_RESET}", flush=True)
-            reply = ask_claude(text, history)
+            reply = await ask_and_speak(text, history)
             save_history(history)
-
-            print(f"{C_MAGENTA}Jarvis:{C_RESET} {reply}\n")
-            asyncio.run(speak(strip_markdown(reply)))
 
         except KeyboardInterrupt:
             save_history(history)
@@ -169,6 +198,10 @@ def main() -> None:
             print(f"{C_RED}Erro no subprocesso:{C_RESET} {e}")
         except Exception as e:
             print(f"{C_RED}Erro:{C_RESET} {e}")
+
+
+def main() -> None:
+    asyncio.run(main_loop())
 
 
 if __name__ == "__main__":
