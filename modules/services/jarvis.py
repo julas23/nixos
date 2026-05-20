@@ -2,6 +2,7 @@
 import asyncio
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -14,6 +15,7 @@ API_KEY    = os.environ.get("ANTHROPIC_API_KEY", "")
 MODEL_PATH = os.environ.get("JARVIS_MODEL", "/var/lib/jarvis/models/ggml-large-v3-turbo.bin")
 VOICE      = os.environ.get("JARVIS_VOICE", "pt-BR-AntonioNeural")
 HISTORY    = Path(os.environ.get("JARVIS_HISTORY", os.path.expanduser("~/.local/share/jarvis/history.json")))
+THREADS    = os.environ.get("JARVIS_THREADS", str(min(os.cpu_count() or 4, 8)))
 
 SYSTEM_PROMPT = (
     "Você é Jarvis, assistente pessoal e interlocutor de confiança. "
@@ -70,6 +72,7 @@ def transcribe(audio_path: str) -> str:
          "-f", audio_path,
          "-l", "pt",
          "-nt",
+         "-t", THREADS,
          "-otxt",
          "-of", base],
         check=True,
@@ -95,6 +98,17 @@ def ask_claude(text: str, history: list) -> str:
     reply = response.content[0].text
     history.append({"role": "assistant", "content": reply})
     return reply
+
+
+def strip_markdown(text: str) -> str:
+    text = re.sub(r'\*{1,3}([^*]+?)\*{1,3}', r'\1', text)
+    text = re.sub(r'^#{1,6}\s+', '', text, flags=re.MULTILINE)
+    text = re.sub(r'`{1,3}[^`]*`{1,3}', '', text)
+    text = re.sub(r'^\s*[-*+]\s+', '', text, flags=re.MULTILINE)
+    text = re.sub(r'^\s*\d+\.\s+', '', text, flags=re.MULTILINE)
+    text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', text)
+    text = re.sub(r'^[-*_]{3,}\s*$', '', text, flags=re.MULTILINE)
+    return re.sub(r'\n{3,}', '\n\n', text).strip()
 
 
 async def speak(text: str) -> None:
@@ -145,7 +159,7 @@ def main() -> None:
             save_history(history)
 
             print(f"{C_MAGENTA}Jarvis:{C_RESET} {reply}\n")
-            asyncio.run(speak(reply))
+            asyncio.run(speak(strip_markdown(reply)))
 
         except KeyboardInterrupt:
             save_history(history)
