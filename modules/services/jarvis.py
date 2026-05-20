@@ -33,8 +33,6 @@ C_GREEN   = "\033[32m"
 C_MAGENTA = "\033[35m"
 C_RED     = "\033[31m"
 
-SENTENCE_END = re.compile(r'(?<=[.!?…])\s+')
-MIN_SENTENCE = 15
 
 
 def load_history() -> list:
@@ -126,54 +124,30 @@ async def speak_piper(text: str) -> None:
 
 async def ask_and_speak(text: str, history: list) -> str:
     """
-    Pipeline producer/consumer assíncrono:
-      producer: AsyncAnthropic stream → buffer → frase → queue (texto)
-      consumer: queue → piper → mpv
-    asyncio.gather roda ambos em paralelo — enquanto mpv toca a frase N,
-    o Claude já acumulou a frase N+1 no buffer.
+    Stream Claude → imprime tokens em tempo real → fala resposta completa via Piper.
+    Com TTS local não há latência de rede para esconder: Piper gera áudio de uma
+    resposta completa em < 1s. Pipeline simples é mais robusto que producer/consumer.
     """
     client = anthropic.AsyncAnthropic(api_key=API_KEY)
     history.append({"role": "user", "content": text})
 
     full_reply = ""
-    buffer = ""
-    sentence_queue: asyncio.Queue = asyncio.Queue(maxsize=4)
 
     print(f"{C_MAGENTA}Jarvis:{C_RESET} ", end="", flush=True)
 
-    async def producer() -> None:
-        nonlocal full_reply, buffer
-        try:
-            async with client.messages.stream(
-                model="claude-haiku-4-5-20251001",
-                max_tokens=600,
-                system=SYSTEM_PROMPT,
-                messages=history,
-            ) as stream:
-                async for delta in stream.text_stream:
-                    full_reply += delta
-                    buffer += delta
-                    print(delta, end="", flush=True)
+    async with client.messages.stream(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=600,
+        system=SYSTEM_PROMPT,
+        messages=history,
+    ) as stream:
+        async for delta in stream.text_stream:
+            full_reply += delta
+            print(delta, end="", flush=True)
 
-                    parts = SENTENCE_END.split(buffer, maxsplit=1)
-                    if len(parts) > 1 and len(parts[0]) >= MIN_SENTENCE:
-                        await sentence_queue.put(strip_markdown(parts[0]))
-                        buffer = parts[1]
-
-            if buffer.strip():
-                await sentence_queue.put(strip_markdown(buffer))
-        finally:
-            await sentence_queue.put(None)
-
-    async def consumer() -> None:
-        while True:
-            sentence = await sentence_queue.get()
-            if sentence is None:
-                break
-            await speak_piper(sentence)
-
-    await asyncio.gather(producer(), consumer())
     print("\n")
+
+    await speak_piper(strip_markdown(full_reply))
 
     history.append({"role": "assistant", "content": full_reply})
     return full_reply
