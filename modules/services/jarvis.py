@@ -35,7 +35,10 @@ C_GREEN   = "\033[32m"
 C_MAGENTA = "\033[35m"
 C_RED     = "\033[31m"
 
+# Detecta fim de frase: ponto/exclamação/interrogação seguido de espaço
 SENTENCE_END = re.compile(r'(?<=[.!?…])\s+')
+# Tamanho mínimo de frase para enviar ao TTS (evita fragmentos curtos)
+MIN_SENTENCE = 15
 
 
 def load_history() -> list:
@@ -100,54 +103,85 @@ def strip_markdown(text: str) -> str:
     return re.sub(r'\n{3,}', '\n\n', text).strip()
 
 
-async def speak_stream(text: str) -> None:
-    """Pipe Edge TTS audio chunks directly to mpv — sem arquivo temporário."""
+async def prefetch_audio(text: str) -> bytes:
+    """Busca todos os chunks de áudio do Edge TTS em memória."""
     communicate = edge_tts.Communicate(text, VOICE)
+    data = b""
+    async for chunk in communicate.stream():
+        if chunk["type"] == "audio":
+            data += chunk["data"]
+    return data
+
+
+async def play_bytes(data: bytes) -> None:
+    """Envia bytes de áudio para mpv via pipe. asyncio.to_thread libera o event loop durante playback."""
     proc = subprocess.Popen(
         ["mpv", "--no-terminal", "--really-quiet", "-"],
         stdin=subprocess.PIPE,
         stderr=subprocess.DEVNULL,
     )
     try:
-        async for chunk in communicate.stream():
-            if chunk["type"] == "audio":
-                proc.stdin.write(chunk["data"])
+        proc.stdin.write(data)
         proc.stdin.close()
     except BrokenPipeError:
         pass
-    proc.wait()
+    await asyncio.to_thread(proc.wait)
 
 
 async def ask_and_speak(text: str, history: list) -> str:
-    """Streaming Claude + TTS por sentença — começa a falar antes de terminar de gerar."""
-    client = anthropic.Anthropic(api_key=API_KEY)
+    """
+    Pipeline producer/consumer totalmente assíncrono:
+      producer: AsyncAnthropic stream → buffer → frase → prefetch TTS → fila
+      consumer: fila → play_bytes (mpv)
+    asyncio.gather roda ambos em paralelo — enquanto mpv toca a frase N,
+    o TTS da frase N+1 já está sendo pré-buscado.
+    """
+    client = anthropic.AsyncAnthropic(api_key=API_KEY)
     history.append({"role": "user", "content": text})
 
     full_reply = ""
     buffer = ""
+    audio_queue: asyncio.Queue = asyncio.Queue(maxsize=3)
 
     print(f"{C_MAGENTA}Jarvis:{C_RESET} ", end="", flush=True)
 
-    with client.messages.stream(
-        model="claude-haiku-4-5-20251001",
-        max_tokens=600,
-        system=SYSTEM_PROMPT,
-        messages=history,
-    ) as stream:
-        for delta in stream.text_stream:
-            full_reply += delta
-            buffer += delta
-            print(delta, end="", flush=True)
+    async def producer() -> None:
+        nonlocal full_reply, buffer
+        try:
+            async with client.messages.stream(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=600,
+                system=SYSTEM_PROMPT,
+                messages=history,
+            ) as stream:
+                async for delta in stream.text_stream:
+                    full_reply += delta
+                    buffer += delta
+                    print(delta, end="", flush=True)
 
-            parts = SENTENCE_END.split(buffer, maxsplit=1)
-            if len(parts) > 1 and len(parts[0]) > 15:
-                await speak_stream(strip_markdown(parts[0]))
-                buffer = parts[1]
+                    parts = SENTENCE_END.split(buffer, maxsplit=1)
+                    if len(parts) > 1 and len(parts[0]) >= MIN_SENTENCE:
+                        audio = await prefetch_audio(strip_markdown(parts[0]))
+                        await audio_queue.put(audio)
+                        buffer = parts[1]
 
-        if buffer.strip():
-            await speak_stream(strip_markdown(buffer))
+            # Flush qualquer texto restante
+            if buffer.strip():
+                audio = await prefetch_audio(strip_markdown(buffer))
+                await audio_queue.put(audio)
+        finally:
+            await audio_queue.put(None)  # sentinel: sinaliza fim ao consumer
 
+    async def consumer() -> None:
+        while True:
+            audio = await audio_queue.get()
+            if audio is None:
+                break
+            await play_bytes(audio)
+
+    await asyncio.gather(producer(), consumer())
     print("\n")
+
     history.append({"role": "assistant", "content": full_reply})
     return full_reply
 
