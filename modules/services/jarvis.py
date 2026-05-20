@@ -101,25 +101,26 @@ def strip_markdown(text: str) -> str:
 
 async def speak_piper(text: str) -> None:
     """
-    Piper gera WAV via stdout → mpv toca via stdin pipe.
-    Zero latência de rede, geração local em ~100ms por frase.
+    Piper escreve WAV em arquivo temporário (header correto com tamanho real),
+    mpv toca o arquivo completo. No NVMe o overhead é < 50ms.
+    Pipe para /dev/stdout trunca porque o WAV header não pode fazer seek
+    para corrigir o tamanho total após a geração.
     """
-    piper_proc = subprocess.Popen(
-        ["piper", "--model", PIPER_MODEL, "--output-file", "/dev/stdout"],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-    )
-    mpv_proc = subprocess.Popen(
-        ["mpv", "--no-terminal", "--really-quiet", "-"],
-        stdin=piper_proc.stdout,
-        stderr=subprocess.DEVNULL,
-    )
-    piper_proc.stdout.close()  # deixa piper_proc receber SIGPIPE se mpv fechar
-    piper_proc.stdin.write((text + "\n").encode("utf-8"))
-    piper_proc.stdin.close()
-    await asyncio.to_thread(piper_proc.wait)
-    await asyncio.to_thread(mpv_proc.wait)
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
+        tmp_wav = f.name
+    try:
+        await asyncio.to_thread(subprocess.run,
+            ["piper", "--model", PIPER_MODEL, "--output-file", tmp_wav],
+            input=(text + "\n").encode("utf-8"),
+            stderr=subprocess.DEVNULL,
+            check=True,
+        )
+        await asyncio.to_thread(subprocess.run,
+            ["mpv", "--no-terminal", "--really-quiet", tmp_wav],
+            stderr=subprocess.DEVNULL,
+        )
+    finally:
+        Path(tmp_wav).unlink(missing_ok=True)
 
 
 async def ask_and_speak(text: str, history: list) -> str:
